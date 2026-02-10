@@ -1,6 +1,5 @@
 import axios from "axios";
 
-// 1. Inisialisasi Instance
 const API = axios.create({
   baseURL: "http://127.0.0.1:8000/api",
   headers: {
@@ -9,10 +8,10 @@ const API = axios.create({
   },
 });
 
-
+// Interceptor buat nempelin Token
 API.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("token"); // Pastikan key-nya 'token'
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -21,9 +20,9 @@ API.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// 3. Service Functions
-export const login = async (credentials) => {
-  const response = await API.post("/login", credentials);
+// Service functions
+export const getKantors = async () => {
+  const response = await API.get("/kantor");
   return response.data;
 };
 
@@ -33,10 +32,25 @@ export const generateQr = async (payload) => {
 };
 
 export const scanQr = async (payload) => {
-  // Langsung return API.post, catch-nya biar dihandle useMutation (onError)
-  // Tapi kalau mau log tambahan di sini juga boleh
-  const response = await API.post("/scan-qr", payload);
+  const response = await API.post("/scan", payload);
   return response.data;
+};
+
+export const addKantor = async (newData) => {
+  const response = await API.post("/kantor", newData);
+  return response.data;
+};
+
+// Simpan user baru
+export const createUser = async (payload) => {
+  const res = await API.post("/users", payload);
+  return res.data;
+};
+
+// Update user
+export const updateUser = async (id, payload) => {
+  const res = await API.put(`/users/${id}`, payload);
+  return res.data;
 };
 
 export default API;

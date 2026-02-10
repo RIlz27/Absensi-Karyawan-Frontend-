@@ -13,10 +13,14 @@ import { toast } from "react-toastify";
 import { useLoginMutation } from "@/store/api/auth/authApiSlice";
 import { setUser } from "@/store/api/auth/authSlice";
 
+// 1. Update Schema: Email ganti jadi NIP
 const schema = yup
   .object({
-    email: yup.string().email("Invalid email").required("Email is Required"),
-    password: yup.string().required("Password is Required"),
+    nip: yup
+      .string()
+      .required("NIP wajib diisi")
+      .min(5, "NIP minimal 5 karakter"), // Sesuaikan panjang NIP lo
+    password: yup.string().required("Password wajib diisi"),
   })
   .required();
 
@@ -34,49 +38,59 @@ const LoginForm = () => {
     mode: "all",
   });
 
- const onSubmit = async (data) => {
-  try {
-    const response = await login(data).unwrap();
+  const onSubmit = async (data) => {
+    try {
+      // Data yang dikirim sekarang { nip, password }
+      const response = await login(data).unwrap();
 
-    if (response.token) {
-      localStorage.setItem("token", response.token);
-      localStorage.setItem("user", JSON.stringify(response.user));
-      dispatch(setUser(response.user));
+      // Sesuaikan dengan key yang dikirim Laravel (tadi di controller lo pake 'access_token')
+      const token = response.token || response.access_token;
 
-      toast.success("Login Successful");
+      if (token) {
+        localStorage.setItem("token", token);
+        localStorage.setItem("user", JSON.stringify(response.user));
+        dispatch(setUser(response.user));
 
-      // Langsung tembak ke dashboard tanpa pilih kasih role
-      navigate("/dashboard"); 
+        toast.success("Login Berhasil");
+
+        // Logic Role: Admin ke dashboard, Karyawan ke scanner (opsional)
+        if (response.user.role === "admin") {
+          navigate("/dashboard");
+        } else {
+          navigate("/app/home"); // Arahkan karyawan ke tempat scan
+        }
+      }
+    } catch (error) {
+      const errorMsg = error.data?.message || "NIP atau password salah";
+      toast.error(errorMsg);
     }
-  } catch (error) {
-    const errorMsg = error.data?.message || "Email atau password salah";
-    toast.error(errorMsg);
-  }
-};
+  };
 
   const [checked, setChecked] = useState(false);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 ">
+      {/* 2. Update Input: Type text & Name nip */}
       <InputGroup
-        name="email"
-        type="email"
-        label="email"
-        placeholder="email"
-        prepend="@"
-        defaultValue="admin@gmail.com" // Update biar gampang ngetesnya
+        name="nip"
+        type="text"
+        label="NIP"
+        placeholder="Masukkan NIP"
+        prepend={<Icon icon="ph:user" />} // Ganti icon jadi user
+        defaultValue="12345" // Dummy buat ngetes
         register={register}
-        error={errors.email}
+        error={errors.nip}
         merged
         disabled={isLoading}
       />
+      
       <InputGroup
         name="password"
-        label="password"
+        label="Password"
         type="password"
-        placeholder="password"
+        placeholder="Password"
         prepend={<Icon icon="ph:lock-simple" />}
-        defaultValue="password" // Update biar gampang ngetesnya
+        defaultValue="password"
         register={register}
         error={errors.password}
         merged
@@ -87,19 +101,19 @@ const LoginForm = () => {
         <Checkbox
           value={checked}
           onChange={() => setChecked(!checked)}
-          label="Remember me"
+          label="Ingat saya"
         />
         <Link
           to="/forgot-password"
           className="text-sm text-gray-400 dark:text-gray-400 hover:text-indigo-500 hover:underline"
         >
-          Forgot Password?
+          Lupa Password?
         </Link>
       </div>
 
       <Button
         type="submit"
-        text="Sign in"
+        text="Masuk"
         className="btn btn-primary block w-full text-center "
         isLoading={isLoading}
       />

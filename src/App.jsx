@@ -85,6 +85,8 @@ const BoardsPage = lazy(() => import("./pages/app/boards"));
 // Pastikan variabel 'GenerateQR' dan path '.../GenerateQR.jsx' sama-sama pakai R besar
 const GenerateQR = lazy(() => import("./pages/absensi/admin/GenerateQR.jsx"));
 const Scanner = lazy(() => import("./pages/absensi/user/Scanner.jsx"));
+const Kantor = lazy(() => import("./pages/absensi/admin/Kantor.jsx"));
+const UserList = lazy(() => import("./pages/absensi/UserList.jsx"));
 
 // const CalenderPage = lazy(() => import("./pages/app/calender"));
 import Layout from "./layout/Layout";
@@ -107,6 +109,7 @@ function App() {
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="ecommerce" element={<Ecommerce />} />
           <Route path="crm" element={<CrmPage />} />
+          <Route path="notifications" element={<NotificationPage />} />
           {/* App pages */}
           <Route path="todos" element={<TodoPage />} />
           <Route path="chats" element={<ChatPage />} />
@@ -160,8 +163,10 @@ function App() {
           <Route path="notifications" element={<NotificationPage />} />
           <Route path="*" element={<Navigate to="/404" />} />
           // Absensi routes
+          <Route path="admin/kantor" element={<Kantor />} />
           <Route path="admin/generate-qr" element={<GenerateQR />} />
           <Route path="user/scanner" element={<Scanner />} />
+          <Route path="user/list" element={<UserList />} />
         </Route>
         <Route
           path="/404"
