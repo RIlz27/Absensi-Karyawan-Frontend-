@@ -82,6 +82,7 @@ const GenerateQR = () => {
   useEffect(() => {
     if (qrToken && activeType) {
       if (timerRef.current) clearInterval(timerRef.current);
+
       timerRef.current = setInterval(() => {
         setTimeLeft((prev) => {
           if (prev <= 1) {
@@ -92,7 +93,9 @@ const GenerateQR = () => {
         });
       }, 1000);
     }
-    return () => clearInterval(timerRef.current);
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
   }, [qrToken, activeType, handleGenerate]);
 
   const formatTime = (seconds) => {

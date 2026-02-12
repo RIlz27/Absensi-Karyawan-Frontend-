@@ -87,6 +87,8 @@ const GenerateQR = lazy(() => import("./pages/absensi/admin/GenerateQR.jsx"));
 const Scanner = lazy(() => import("./pages/absensi/user/Scanner.jsx"));
 const Kantor = lazy(() => import("./pages/absensi/admin/Kantor.jsx"));
 const UserList = lazy(() => import("./pages/absensi/UserList.jsx"));
+const ManageShift = lazy(() => import("./pages/absensi/admin/ManageShift.jsx"));
+const AddUser = lazy(() => import("./pages/absensi/admin/AddUser.jsx"));
 
 // const CalenderPage = lazy(() => import("./pages/app/calender"));
 import Layout from "./layout/Layout";
@@ -167,6 +169,9 @@ function App() {
           <Route path="admin/generate-qr" element={<GenerateQR />} />
           <Route path="user/scanner" element={<Scanner />} />
           <Route path="user/list" element={<UserList />} />
+          <Route path="admin/manage-shift" element={<ManageShift />} />
+          <Route path="admin/add-user" element={<AddUser />} />
+          <Route path="users" element={<UserList />} />
         </Route>
         <Route
           path="/404"

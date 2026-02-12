@@ -32,9 +32,10 @@ import API, { getKantors } from "@/store/api/absensiService";
 import { toast } from "react-toastify";
 
 // Komponen helper untuk geser kamera tanpa refresh map
-function ChangeView({ center }) {
+function ChangeView({ center, zoom }) {
   const map = useMap();
-  map.setView(center);
+  // useFlyTo biar ada animasi smooth pas pindah, atau setView biar instan
+  map.setView(center, map.getZoom()); // map.getZoom() ngejaga zoom lo tetep di posisi terakhir
   return null;
 }
 
@@ -119,6 +120,18 @@ const Kantor = () => {
     setEditId(null);
     setFormData(initialForm);
   };
+
+  const neonIcon = L.divIcon({
+    html: `
+    <div class="relative flex items-center justify-center">
+      <div class="absolute h-10 w-10 animate-ping rounded-full bg-indigo-500 opacity-20"></div>
+      <div class="relative h-4 w-4 rounded-full border-2 border-white bg-indigo-600 shadow-[0_0_15px_rgba(79,70,229,0.9)]"></div>
+    </div>
+  `,
+    className: "custom-neon-icon",
+    iconSize: [20, 20],
+    iconAnchor: [10, 10],
+  });
 
   const MapClickHandler = () => {
     useMapEvents({
@@ -229,44 +242,60 @@ const Kantor = () => {
         <div className="fixed inset-0 z-[999] flex items-center justify-center bg-slate-900/70 backdrop-blur-sm p-4">
           <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-5xl flex flex-col md:flex-row overflow-hidden animate-slide-up">
             {/* MAP SIDE */}
-            <div className="w-full md:w-3/5 h-[300px] md:h-[550px] relative bg-slate-100 rounded-2xl overflow-hidden border border-slate-200">
+            <div className="w-full md:w-3/5 h-[300px] md:h-[550px] relative bg-slate-900 overflow-hidden rounded-l-2xl">
               <MapContainer
+                // key={...}  <-- HAPUS INI BRO, ini biang kerok auto zoom out-nya
                 center={[formData.latitude, formData.longitude]}
                 zoom={16}
                 style={{ height: "100%", width: "100%" }}
-                zoomControl={false} // Opsional: biar lebih bersih
+                zoomControl={false}
               >
-                <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-
-                {/* Pake ini buat gantiin fungsi 'key' tadi */}
+                {/* Biar map pindah posisi tanpa reset zoom/reload tile */}
                 <ChangeView center={[formData.latitude, formData.longitude]} />
 
-                <Marker position={[formData.latitude, formData.longitude]} />
+                {/* Balikin URL ke Dark Mode biar gak putih (tadi di kode lo balik ke osm standar) */}
+                <TileLayer
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  attribution="&copy; CARTO"
+                />
+
+                <Marker
+                  position={[formData.latitude, formData.longitude]}
+                  icon={neonIcon}
+                />
 
                 <Circle
                   center={[formData.latitude, formData.longitude]}
                   radius={parseInt(formData.radius_meter) || 0}
                   pathOptions={{
-                    color: "#4f46e5",
-                    fillColor: "#4f46e5",
-                    fillOpacity: 0.2,
+                    color: "#6366f1",
+                    fillColor: "#6366f1",
+                    fillOpacity: 0.15,
+                    weight: 2,
+                    dashArray: "5, 10",
                   }}
                 />
+
                 <MapClickHandler />
               </MapContainer>
 
-              {/* Button GPS SAYA */}
+              {/* Tombol GPS SAYA - Dark Version */}
               <button
                 type="button"
                 onClick={handleGetLocation}
-                className="absolute top-4 right-4 z-[1000] bg-white/90 backdrop-blur-sm dark:bg-slate-700/90 p-3 rounded-xl shadow-xl flex items-center gap-2 hover:scale-105 active:scale-95 transition-all text-[10px] font-black uppercase tracking-wider text-indigo-600 border border-white"
+                className="absolute top-4 right-4 z-[1000] bg-slate-800/90 backdrop-blur-sm p-3 rounded-xl shadow-2xl flex items-center gap-2 hover:scale-105 active:scale-95 transition-all text-xs font-black uppercase tracking-wider text-indigo-400 border border-slate-700"
               >
                 <Icon
                   icon="ph:navigation-arrow-fill"
                   className="text-lg animate-pulse"
                 />
-                Lokasi Saya
+                GPS SAYA
               </button>
+
+              {/* Info Box Kecil buat Petunjuk */}
+              <div className="absolute bottom-4 left-4 z-[1000] bg-slate-900/80 backdrop-blur-sm px-3 py-1.5 rounded-lg border border-slate-700 text-[10px] text-slate-400 font-medium">
+                Klik pada peta untuk menyesuaikan lokasi
+              </div>
             </div>
 
             {/* FORM SIDE */}
