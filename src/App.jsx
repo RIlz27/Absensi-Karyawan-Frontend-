@@ -89,6 +89,8 @@ const Kantor = lazy(() => import("./pages/absensi/admin/Kantor.jsx"));
 const UserList = lazy(() => import("./pages/absensi/UserList.jsx"));
 const ManageShift = lazy(() => import("./pages/absensi/admin/ManageShift.jsx"));
 const AddUser = lazy(() => import("./pages/absensi/admin/AddUser.jsx"));
+const Laporan = lazy(() => import("./pages/absensi/admin/Laporan.jsx"));
+const UserDashboard = lazy(() => import("./pages/absensi/user/Dashboard.jsx"));
 
 // const CalenderPage = lazy(() => import("./pages/app/calender"));
 import Layout from "./layout/Layout";
@@ -170,8 +172,10 @@ function App() {
           <Route path="user/scanner" element={<Scanner />} />
           <Route path="user/list" element={<UserList />} />
           <Route path="admin/manage-shift" element={<ManageShift />} />
-          <Route path="admin/add-user" element={<AddUser />} />
+          <Route path="admin/AddUser" element={<AddUser />} />
           <Route path="users" element={<UserList />} />
+          <Route path="admin/laporan" element={<Laporan />} />
+          <Route path="user/dashboard" element={<UserDashboard />} />
         </Route>
         <Route
           path="/404"

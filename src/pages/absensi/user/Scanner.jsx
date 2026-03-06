@@ -148,8 +148,9 @@ const Scanner = () => {
 
                 {/* Tombol Aksi */}
                 <div className="mt-8 flex flex-col gap-3">
+                  
                   <button
-                    onClick={() => navigate("/history")}
+                    onClick={() => navigate("/admin/laporan")}
                     className="w-full rounded-2xl bg-indigo-600 py-4 font-bold text-white shadow-lg shadow-indigo-200 active:scale-95 transition-all"
                   >
                     Lihat Riwayat Absen

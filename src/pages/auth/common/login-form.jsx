@@ -28,7 +28,7 @@ const LoginForm = () => {
   const [login, { isLoading }] = useLoginMutation();
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  
+
   const {
     register,
     formState: { errors },
@@ -40,10 +40,7 @@ const LoginForm = () => {
 
   const onSubmit = async (data) => {
     try {
-      // Data yang dikirim sekarang { nip, password }
       const response = await login(data).unwrap();
-
-      // Sesuaikan dengan key yang dikirim Laravel (tadi di controller lo pake 'access_token')
       const token = response.token || response.access_token;
 
       if (token) {
@@ -53,11 +50,12 @@ const LoginForm = () => {
 
         toast.success("Login Berhasil");
 
-        // Logic Role: Admin ke dashboard, Karyawan ke scanner (opsional)
+        // LOGIC REDIRECT DISINI BRO
         if (response.user.role === "admin") {
           navigate("/dashboard");
         } else {
-          navigate("/app/home"); // Arahkan karyawan ke tempat scan
+          // Ganti dari "/app/home" ke "/user/dashboard"
+          navigate("/user/dashboard");
         }
       }
     } catch (error) {
@@ -83,7 +81,7 @@ const LoginForm = () => {
         merged
         disabled={isLoading}
       />
-      
+
       <InputGroup
         name="password"
         label="Password"

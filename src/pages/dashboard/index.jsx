@@ -187,10 +187,30 @@ const Dashboard = () => {
           <p className="text-[11px] text-slate-500 mb-4 h-8 leading-tight">
             Tambah karyawan baru, edit data NIP, atau nonaktifkan akun.
           </p>
-          <Link to="/admin/users">
+          <Link to="/admin/AddUser">
             <Button
               text="Kelola User"
               className="bg-rose-600 hover:bg-rose-700 btn-sm w-full text-white transition-all"
+            />
+          </Link>
+        </div>
+
+        {/* TOMBOL LAPORAN */}
+        <div className="p-4 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="h-10 w-10 bg-emerald-100 text-emerald-600 rounded flex items-center justify-center">
+              <Icon icon="ph:file-text-duotone" className="text-2xl" />
+            </div>
+            <h5 className="text-sm font-semibold">Laporan Absensi</h5>
+          </div>
+          <p className="text-[11px] text-slate-500 mb-4 h-8 leading-tight">
+            {" "}
+            Rekap kehadiran harian dan bulanan karyawan secara detail.
+          </p>
+          <Link to="/admin/laporan">
+            <Button
+              text="Lihat Laporan"
+              className="bg-emerald-600 hover:bg-emerald-700 btn-sm w-full text-white"
             />
           </Link>
         </div>
