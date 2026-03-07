@@ -91,6 +91,8 @@ const ManageShift = lazy(() => import("./pages/absensi/admin/ManageShift.jsx"));
 const AddUser = lazy(() => import("./pages/absensi/admin/AddUser.jsx"));
 const Laporan = lazy(() => import("./pages/absensi/admin/Laporan.jsx"));
 const UserDashboard = lazy(() => import("./pages/absensi/user/Dashboard.jsx"));
+const Pengajuan = lazy(() => import("./pages/absensi/user/Pengajuan.jsx"));
+const Approval = lazy(() => import("./pages/absensi/admin/Approval.jsx"));
 
 // const CalenderPage = lazy(() => import("./pages/app/calender"));
 import Layout from "./layout/Layout";
@@ -175,7 +177,9 @@ function App() {
           <Route path="admin/AddUser" element={<AddUser />} />
           <Route path="users" element={<UserList />} />
           <Route path="admin/laporan" element={<Laporan />} />
+          <Route path="admin/approval" element={<Approval />} />
           <Route path="user/dashboard" element={<UserDashboard />} />
+          <Route path="user/pengajuan" element={<Pengajuan />} />
         </Route>
         <Route
           path="/404"

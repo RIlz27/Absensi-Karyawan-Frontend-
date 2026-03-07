@@ -74,8 +74,8 @@ const LoginForm = () => {
         type="text"
         label="NIP"
         placeholder="Masukkan NIP"
-        prepend={<Icon icon="ph:user" />} // Ganti icon jadi user
-        defaultValue="12345" // Dummy buat ngetes
+        prepend={<Icon icon="ph:user" />} 
+        defaultValue="0085689927" 
         register={register}
         error={errors.nip}
         merged

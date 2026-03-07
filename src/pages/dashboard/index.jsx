@@ -39,7 +39,7 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       {/* SECTION 1: TOP STATS COUNTER */}
       <div className="grid xl:grid-cols-4 sm:grid-cols-2 grid-cols-1 gap-5">
         <Card>
@@ -48,16 +48,16 @@ const Dashboard = () => {
               Total Karyawan
             </div>
             <div className="flex-none">
-              <div className="h-10 w-10 rounded-full bg-indigo-500 text-white text-2xl flex items-center justify-center">
+              <div className="h-10 w-10 rounded-full bg-indigo-500 text-white text-2xl flex items-center justify-center shadow-lg shadow-indigo-500/30">
                 <Icon icon="ph:users-duotone" />
               </div>
             </div>
           </div>
           <div className="mt-4">
-            <span className="text-2xl font-medium text-slate-900 dark:text-white">
+            <span className="text-3xl font-bold text-slate-900 dark:text-white">
               124
             </span>
-            <div className="mt-2 text-sm text-slate-500">Aktif bekerja</div>
+            <div className="mt-1 text-sm text-slate-500 font-medium">Karyawan Aktif</div>
           </div>
         </Card>
 
@@ -67,152 +67,162 @@ const Dashboard = () => {
               Kehadiran Hari Ini
             </div>
             <div className="flex-none">
-              <div className="h-10 w-10 rounded-full bg-green-500 text-white text-2xl flex items-center justify-center">
+              <div className="h-10 w-10 rounded-full bg-emerald-500 text-white text-2xl flex items-center justify-center shadow-lg shadow-emerald-500/30">
                 <Icon icon="ph:check-circle-duotone" />
               </div>
             </div>
           </div>
           <div className="mt-4">
-            <span className="text-2xl font-medium text-slate-900 dark:text-white">
+            <span className="text-3xl font-bold text-slate-900 dark:text-white">
               85%
             </span>
-            <div className="mt-2 text-sm text-slate-500">Dari total jadwal</div>
+            <div className="mt-1 text-sm text-slate-500 font-medium">Dari total jadwal</div>
           </div>
         </Card>
       </div>
 
       {/* SECTION 2: PANEL OPERASIONAL (ADMIN & USER) */}
       <div className="grid grid-cols-12 gap-5">
+        {/* PANEL ADMIN (Span 8) */}
         <div className="xl:col-span-8 col-span-12">
           <Card
-            title="Panel Operasional Absensi"
-            className="bg-slate-50 dark:bg-slate-800"
+            title="Panel Operasional Admin"
+            className="bg-slate-50 dark:bg-slate-800 h-full"
           >
-            {/* Grid 3 Kolom untuk Admin */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* MANAJEMEN KANTOR */}
-              <div className="p-4 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900">
+            {/* Grid Menu Admin - Dibuat responsif 1, 2, atau 3 kolom */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              
+              {/* 1. MANAJEMEN KANTOR */}
+              <div className="p-5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 flex flex-col h-full hover:shadow-md transition-shadow">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="h-10 w-10 bg-indigo-100 text-indigo-600 rounded flex items-center justify-center">
+                  <div className="h-10 w-10 bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 rounded-lg flex items-center justify-center">
                     <Icon icon="ph:buildings-duotone" className="text-2xl" />
                   </div>
-                  <h5 className="text-sm font-semibold">Manajemen Kantor</h5>
+                  <h5 className="text-sm font-bold">Manajemen Kantor</h5>
                 </div>
-                <p className="text-[11px] text-slate-500 mb-4 h-8 leading-tight">
+                <p className="text-xs text-slate-500 mb-5 flex-grow">
                   Atur lokasi GPS, radius jarak, dan data kantor pusat/cabang.
                 </p>
-                <Link to="/admin/kantor">
-                  <Button
-                    text="Daftar Kantor"
-                    className="btn-outline-dark btn-sm w-full bg-indigo-700 text-white"
-                  />
-                </Link>
+                <div className="mt-auto">
+                  <Link to="/admin/kantor">
+                    <Button
+                      text="Daftar Kantor"
+                      className="btn-sm w-full bg-slate-100 hover:bg-indigo-600 text-slate-700 hover:text-white dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-indigo-500 transition-colors"
+                    />
+                  </Link>
+                </div>
               </div>
 
-              {/* GENERATOR QR */}
-              <div className="p-4 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900">
+              {/* 2. GENERATOR QR */}
+              <div className="p-5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 flex flex-col h-full hover:shadow-md transition-shadow">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="h-10 w-10 bg-blue-100 text-blue-600 rounded flex items-center justify-center">
+                  <div className="h-10 w-10 bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded-lg flex items-center justify-center">
                     <Icon icon="ph:qr-code-duotone" className="text-2xl" />
                   </div>
-                  <h5 className="text-sm font-semibold">Generator QR</h5>
+                  <h5 className="text-sm font-bold">Generator QR</h5>
                 </div>
-                <p className="text-[11px] text-slate-500 mb-4 h-8 leading-tight">
+                <p className="text-xs text-slate-500 mb-5 flex-grow">
                   Tampilkan QR Code harian untuk discan karyawan di lokasi.
                 </p>
-                <Button
-                  text="Buka Panel QR"
-                  className="bg-indigo-700 btn-sm w-full"
-                  onClick={handleGenerateClick}
-                  isLoading={loadingKantor}
-                />
+                <div className="mt-auto">
+                  <Button
+                    text="Buka Panel QR"
+                    className="bg-indigo-600 hover:bg-indigo-700 btn-sm w-full text-white shadow-md shadow-indigo-500/20"
+                    onClick={handleGenerateClick}
+                    isLoading={loadingKantor}
+                  />
+                </div>
               </div>
 
-              {/* MANAJEMEN SHIFT (FITUR BARU) */}
-              <div className="p-4 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900">
+              {/* 3. MANAJEMEN SHIFT */}
+              <div className="p-5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 flex flex-col h-full hover:shadow-md transition-shadow">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="h-10 w-10 bg-amber-100 text-amber-600 rounded flex items-center justify-center">
-                    <Icon
-                      icon="ph:calendar-check-duotone"
-                      className="text-2xl"
-                    />
+                  <div className="h-10 w-10 bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 rounded-lg flex items-center justify-center">
+                    <Icon icon="ph:calendar-check-duotone" className="text-2xl" />
                   </div>
-                  <h5 className="text-sm font-semibold">Manajemen Shift</h5>
+                  <h5 className="text-sm font-bold">Manajemen Shift</h5>
                 </div>
-                <p className="text-[11px] text-slate-500 mb-4 h-8 leading-tight">
-                  Plotting jadwal harian karyawan dan atur shift kerja (pivot).
+                <p className="text-xs text-slate-500 mb-5 flex-grow">
+                  Plotting jadwal harian karyawan dan atur shift kerja.
                 </p>
-                <Link to="/admin/manage-shift">
-                  <Button
-                    text="Atur Jadwal"
-                    className="bg-amber-600 hover:bg-amber-700 btn-sm w-full text-white transition-all"
-                  />
-                </Link>
+                <div className="mt-auto">
+                  <Link to="/admin/manage-shift">
+                    <Button
+                      text="Atur Jadwal"
+                      className="bg-amber-500 hover:bg-amber-600 btn-sm w-full text-white shadow-md shadow-amber-500/20"
+                    />
+                  </Link>
+                </div>
               </div>
+
+              {/* 4. DATA KARYAWAN (Dipindah ke dalam grid sini) */}
+              <div className="p-5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 flex flex-col h-full hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="h-10 w-10 bg-rose-100 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400 rounded-lg flex items-center justify-center">
+                    <Icon icon="ph:user-list-duotone" className="text-2xl" />
+                  </div>
+                  <h5 className="text-sm font-bold">Data Karyawan</h5>
+                </div>
+                <p className="text-xs text-slate-500 mb-5 flex-grow">
+                  Tambah karyawan baru, edit NIP, atau nonaktifkan akun.
+                </p>
+                <div className="mt-auto">
+                  <Link to="/admin/AddUser">
+                    <Button
+                      text="Kelola User"
+                      className="bg-rose-500 hover:bg-rose-600 btn-sm w-full text-white shadow-md shadow-rose-500/20"
+                    />
+                  </Link>
+                </div>
+              </div>
+
+              {/* 5. LAPORAN ABSENSI (Dipindah ke dalam grid sini) */}
+              <div className="p-5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 flex flex-col h-full hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="h-10 w-10 bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-lg flex items-center justify-center">
+                    <Icon icon="ph:file-text-duotone" className="text-2xl" />
+                  </div>
+                  <h5 className="text-sm font-bold">Laporan Absensi</h5>
+                </div>
+                <p className="text-xs text-slate-500 mb-5 flex-grow">
+                  Rekap kehadiran harian dan bulanan karyawan detail.
+                </p>
+                <div className="mt-auto">
+                  <Link to="/admin/laporan">
+                    <Button
+                      text="Lihat Laporan"
+                      className="bg-emerald-500 hover:bg-emerald-600 btn-sm w-full text-white shadow-md shadow-emerald-500/20"
+                    />
+                  </Link>
+                </div>
+              </div>
+
             </div>
           </Card>
         </div>
-        {/* PRESENSI MANDIRI (USER SECTION) */}
+
         <div className="xl:col-span-4 col-span-12">
           <Card
             title="Presensi Mandiri"
-            className="bg-green-50 dark:bg-green-900/10"
+            className="bg-emerald-50 dark:bg-emerald-900/10 h-full border border-emerald-100 dark:border-emerald-500/20"
           >
-            <div className="text-center py-2">
-              <div className="h-16 w-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Icon icon="ph:camera-duotone" className="text-3xl" />
+            <div className="flex flex-col items-center justify-center text-center py-8 h-full">
+              <div className="h-20 w-20 bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center mb-5 ring-4 ring-emerald-50 dark:ring-emerald-900/30">
+                <Icon icon="ph:camera-duotone" className="text-4xl animate-bounce" />
               </div>
-              <h5 className="text-sm font-semibold mb-2">Scan Kehadiran</h5>
-              <p className="text-xs text-slate-500 mb-5 leading-relaxed">
-                Pastikan GPS aktif & berada di area kantor.
+              <h5 className="text-lg font-bold mb-2 text-slate-800 dark:text-white">Scan Kehadiran</h5>
+              <p className="text-sm text-slate-500 mb-8 max-w-[200px]">
+                Pastikan GPS aktif & Anda berada di dalam radius area kantor.
               </p>
-              <Link to="/user/scanner">
+              <Link to="/user/scanner" className="w-full">
                 <Button
                   text="Scan QR Sekarang"
-                  className="btn-success w-full"
+                  className="bg-emerald-600 hover:bg-emerald-700 w-full text-white py-3 rounded-xl shadow-lg shadow-emerald-500/30 font-bold"
                   icon="ph:scan-bold"
                 />
               </Link>
             </div>
           </Card>
-        </div>
-        {/* TOMBOL MANAJEMEN KARYAWAN */}
-        <div className="p-4 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="h-10 w-10 bg-rose-100 text-rose-600 rounded flex items-center justify-center">
-              <Icon icon="ph:user-list-duotone" className="text-2xl" />
-            </div>
-            <h5 className="text-sm font-semibold">Data Karyawan</h5>
-          </div>
-          <p className="text-[11px] text-slate-500 mb-4 h-8 leading-tight">
-            Tambah karyawan baru, edit data NIP, atau nonaktifkan akun.
-          </p>
-          <Link to="/admin/AddUser">
-            <Button
-              text="Kelola User"
-              className="bg-rose-600 hover:bg-rose-700 btn-sm w-full text-white transition-all"
-            />
-          </Link>
-        </div>
-
-        {/* TOMBOL LAPORAN */}
-        <div className="p-4 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="h-10 w-10 bg-emerald-100 text-emerald-600 rounded flex items-center justify-center">
-              <Icon icon="ph:file-text-duotone" className="text-2xl" />
-            </div>
-            <h5 className="text-sm font-semibold">Laporan Absensi</h5>
-          </div>
-          <p className="text-[11px] text-slate-500 mb-4 h-8 leading-tight">
-            {" "}
-            Rekap kehadiran harian dan bulanan karyawan secara detail.
-          </p>
-          <Link to="/admin/laporan">
-            <Button
-              text="Lihat Laporan"
-              className="bg-emerald-600 hover:bg-emerald-700 btn-sm w-full text-white"
-            />
-          </Link>
         </div>
       </div>
 
@@ -222,7 +232,7 @@ const Dashboard = () => {
           <Card
             title="History Absensi"
             headerslot={
-              <div className="text-sm text-slate-400 font-normal underline cursor-pointer">
+              <div className="text-sm text-indigo-500 hover:text-indigo-600 font-semibold underline cursor-pointer transition-colors">
                 View All
               </div>
             }

@@ -14,7 +14,6 @@ const EmployeeManagement = () => {
     name: "",
     nip: "",
     role: "karyawan",
-    kantor_id: "",
   });
 
   // Fetch Karyawan
@@ -23,26 +22,18 @@ const EmployeeManagement = () => {
     queryFn: getUsers,
   });
 
-  // Fetch Kantor untuk Dropdown (Gue tambahin biar sinkron sama obrolan sebelumnya)
-  const { data: officesData } = useQuery({
-    queryKey: ["fetch-kantor"],
-    queryFn: async () => {
-      /* Logic fetch kantor lo disini */
-    },
-    enabled: showAddForm,
-  });
-
   const deleteMutation = useMutation({
     mutationFn: (id) => deleteUser(id),
     onSuccess: (data) => {
       // Data yang diterima ini diambil dari response JSON Laravel lo
       toast.success(data.message || "Karyawan berhasil dihapus!");
-      setSelectedUser(null); 
+      setSelectedUser(null);
       queryClient.invalidateQueries(["fetch-users"]);
     },
     onError: (error) => {
       // Ini bakal nangkep 403 Forbidden dari backend lo
-      const message = error.response?.data?.message || "Gagal menghapus karyawan";
+      const message =
+        error.response?.data?.message || "Gagal menghapus karyawan";
       toast.error(message);
     },
   });
@@ -58,9 +49,6 @@ const EmployeeManagement = () => {
   };
 
   const users = Array.isArray(usersData) ? usersData : usersData?.data || [];
-  const offices = Array.isArray(officesData)
-    ? officesData
-    : officesData?.data || [];
 
   const mutation = useMutation({
     mutationFn: (newUser) => createUser(newUser),
@@ -74,8 +62,13 @@ const EmployeeManagement = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!form.kantor_id) return toast.error("Pilih lokasi kantor!");
-    mutation.mutate(form);
+
+    const payload = {
+      ...form,
+      kantor_id: 1,
+    };
+
+    mutation.mutate(payload);
   };
 
   const inputClass =
@@ -206,24 +199,6 @@ const EmployeeManagement = () => {
                       </select>
                     </div>
                   </div>
-                  <div>
-                    <label className={labelClass}>Lokasi Kantor</label>
-                    <select
-                      className={inputClass}
-                      value={form.kantor_id}
-                      onChange={(e) =>
-                        setForm({ ...form, kantor_id: e.target.value })
-                      }
-                      required
-                    >
-                      <option value="">Pilih Kantor...</option>
-                      {offices.map((o) => (
-                        <option key={o.id} value={o.id}>
-                          {o.nama}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
                   <Button
                     type="submit"
                     text={
@@ -235,105 +210,105 @@ const EmployeeManagement = () => {
                 </form>
               </Card>
             ) : selectedUser ? (
-              <div className="bg-white dark:bg-slate-900 p-8 rounded-3xl shadow-xl border border-slate-100 dark:border-slate-800 animate-in fade-in zoom-in duration-300">
-                <div className="flex flex-col items-center text-center mb-8">
-                  <div className="w-24 h-24 bg-gradient-to-tr from-indigo-600 to-viol et-500 rounded-3xl flex items-center justify-center text-white text-4xl font-bold shadow-2xl shadow-indigo-500/40 mb-4 ring-4 ring-white dark:ring-slate-800">
-                    {selectedUser.name.charAt(0)}
+                <div className="bg-white dark:bg-slate-900 p-8 rounded-3xl shadow-xl border border-slate-100 dark:border-slate-800 animate-in fade-in zoom-in duration-300">
+                  <div className="flex flex-col items-center text-center mb-8">
+                    <div className="w-24 h-24 bg-gradient-to-tr from-indigo-600 to-viol et-500 rounded-3xl flex items-center justify-center text-white text-4xl font-bold shadow-2xl shadow-indigo-500/40 mb-4 ring-4 ring-white dark:ring-slate-800">
+                      {selectedUser.name.charAt(0)}
+                    </div>
+                    <h2 className="text-xl font-black text-slate-800 dark:text-white uppercase tracking-tight">
+                      {selectedUser.name}
+                    </h2>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-sm font-medium text-slate-400 italic">
+                        ID: {selectedUser.nip}
+                      </span>
+                      <button
+                        onClick={() => handleDelete(selectedUser.id)}
+                        disabled={deleteMutation.isPending}
+                        className="p-2.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-xl transition-all border border-transparent hover:border-rose-100"
+                        title="Hapus Karyawan"
+                      >
+                        {deleteMutation.isPending ? (
+                          <Icon
+                            icon="line-md:loading-twotone-loop"
+                            className="text-xl"
+                          />
+                        ) : (
+                          <Icon icon="ph:trash-bold" className="text-xl" />
+                        )}
+                      </button>
+                      <span className="h-1 w-1 bg-slate-300 rounded-full"></span>
+                      <span className="text-xs font-bold text-indigo-500 uppercase">
+                        {selectedUser.role}
+                      </span>
+                    </div>
                   </div>
-                  <h2 className="text-xl font-black text-slate-800 dark:text-white uppercase tracking-tight">
-                    {selectedUser.name}
-                  </h2>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-sm font-medium text-slate-400 italic">
-                      ID: {selectedUser.nip}
-                    </span>
-                    <button
-                      onClick={() => handleDelete(selectedUser.id)}
-                      disabled={deleteMutation.isPending}
-                      className="p-2.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-xl transition-all border border-transparent hover:border-rose-100"
-                      title="Hapus Karyawan"
-                    >
-                      {deleteMutation.isPending ? (
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    {/* DETAIL KANTOR */}
+                    <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+                      <div className="flex items-center gap-2 mb-3">
                         <Icon
-                          icon="line-md:loading-twotone-loop"
-                          className="text-xl"
+                          icon="ph:buildings-bold"
+                          className="text-amber-500 text-lg"
                         />
-                      ) : (
-                        <Icon icon="ph:trash-bold" className="text-xl" />
-                      )}
-                    </button>
-                    <span className="h-1 w-1 bg-slate-300 rounded-full"></span>
-                    <span className="text-xs font-bold text-indigo-500 uppercase">
-                      {selectedUser.role}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  {/* DETAIL KANTOR */}
-                  <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Icon
-                        icon="ph:buildings-bold"
-                        className="text-amber-500 text-lg"
-                      />
-                      <span className={labelClass}>Penempatan Kantor</span>
+                        <span className={labelClass}>Penempatan Kantor</span>
+                      </div>
+                      <p className="text-sm font-bold text-slate-700 dark:text-slate-200">
+                        {selectedUser.kantor?.nama || "Tidak ada data"}
+                      </p>
+                      <p className="text-[11px] text-slate-500 mt-1 leading-relaxed italic">
+                        {selectedUser.kantor?.alamat ||
+                          "Alamat belum ditambahkan."}
+                      </p>
                     </div>
-                    <p className="text-sm font-bold text-slate-700 dark:text-slate-200">
-                      {selectedUser.kantor?.nama || "Tidak ada data"}
-                    </p>
-                    <p className="text-[11px] text-slate-500 mt-1 leading-relaxed italic">
-                      {selectedUser.kantor?.alamat ||
-                        "Alamat belum ditambahkan."}
-                    </p>
-                  </div>
 
-                  {/* DETAIL SHIFT */}
-                  <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Icon
-                        icon="ph:clock-bold"
-                        className="text-indigo-500 text-lg"
-                      />
-                      <span className={labelClass}>Jadwal Kerja</span>
-                    </div>
-                    <div className="space-y-2 max-h-40 overflow-y-auto">
-                      {selectedUser?.shifts &&
-                      selectedUser.shifts.length > 0 ? (
-                        Array.from(
-                          new Map(
-                            selectedUser.shifts.map((s) => [s.id, s]),
-                          ).values(),
-                        ).map((s) => (
-                          <div
-                            key={s.id}
-                            className="flex items-center justify-between bg-white dark:bg-slate-800 p-2.5 rounded-xl border border-slate-100 dark:border-slate-700"
-                          >
-                            <div className="flex items-center gap-2">
-                              <div
-                                className="w-2 h-2 rounded-full"
-                                style={{
-                                  backgroundColor: s.color || "#6366f1",
-                                }}
-                              />
-                              <span className="text-xs font-bold text-slate-700 dark:text-slate-200">
-                                {s.day}
+                    {/* DETAIL SHIFT */}
+                    <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Icon
+                          icon="ph:clock-bold"
+                          className="text-indigo-500 text-lg"
+                        />
+                        <span className={labelClass}>Jadwal Kerja</span>
+                      </div>
+                      <div className="space-y-2 max-h-40 overflow-y-auto">
+                        {selectedUser?.shifts &&
+                        selectedUser.shifts.length > 0 ? (
+                          Array.from(
+                            new Map(
+                              selectedUser.shifts.map((s) => [s.id, s]),
+                            ).values(),
+                          ).map((s) => (
+                            <div
+                              key={s.id}
+                              className="flex items-center justify-between bg-white dark:bg-slate-800 p-2.5 rounded-xl border border-slate-100 dark:border-slate-700"
+                            >
+                              <div className="flex items-center gap-2">
+                                <div
+                                  className="w-2 h-2 rounded-full"
+                                  style={{
+                                    backgroundColor: s.color || "#6366f1",
+                                  }}
+                                />
+                                <span className="text-xs font-bold text-slate-700 dark:text-slate-200">
+                                  {s.day}
+                                </span>
+                              </div>
+                              <span className="text-[10px] font-mono font-medium text-slate-500">
+                                {s.jam_masuk} - {s.jam_pulang}
                               </span>
                             </div>
-                            <span className="text-[10px] font-mono font-medium text-slate-500">
-                              {s.jam_masuk} - {s.jam_pulang}
-                            </span>
-                          </div>
-                        ))
-                      ) : (
-                        <p className="text-[11px] text-slate-400 italic py-2">
-                          Jadwal belum dikonfigurasi.
-                        </p>
-                      )}
+                          ))
+                        ) : (
+                          <p className="text-[11px] text-slate-400 italic py-2">
+                            Jadwal belum dikonfigurasi.
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
             ) : (
               <div className="h-full min-h-[400px] flex flex-col items-center justify-center text-slate-400 bg-white/30 dark:bg-slate-900/30 rounded-[40px] border-2 border-dashed border-slate-200 dark:border-slate-800">
                 <Icon

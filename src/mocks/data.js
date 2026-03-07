@@ -3,6 +3,24 @@ export const menuItems = [
     isHeadr: true,
     title: "menu",
   },
+  {
+    title: "Absensi",
+    icon: "ph:users",
+    child: [
+      {
+        childtitle: "Dashboard User",
+        childlink: "user/dashboard",
+      },
+      {
+        childtitle: "Pengajuan",
+        childlink: "user/pengajuan",
+      },
+      {
+        childtitle: "Approval Admin",
+        childlink: "admin/approval",
+      },
+    ],
+  },
 
   {
     title: "Dashboard",

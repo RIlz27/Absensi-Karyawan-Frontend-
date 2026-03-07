@@ -1,6 +1,5 @@
 import axios from "axios";
 
-// Pake instance API yang udah dikonfigurasi
 const API = axios.create({
   baseURL: "http://127.0.0.1:8000/api",
   headers: {
@@ -9,7 +8,6 @@ const API = axios.create({
   },
 });
 
-// 1. Request Interceptor: Nempelin Token
 API.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
@@ -31,11 +29,13 @@ API.interceptors.response.use(
   }
 );
 
-// --- SERVICE FUNCTIONS ---
-// Dikelompokkan biar lebih rapi
-
-// KANTOR
-export const getKantors = async () => (await API.get("/kantor")).data;
+export const getKantors = async () => {
+  const response = await API.get("/kantors"); // Pastiin ini endpoint yang bener
+  if (!response.data) {
+    return []; // Return array kosong biar gak error kalau API kosong
+  }
+  return response.data;
+};
 export const addKantor = async (data) => (await API.post("/kantor", data)).data;
 export const deleteKantor = async (id) => (await API.delete(`/kantor/${id}`)).data;
 

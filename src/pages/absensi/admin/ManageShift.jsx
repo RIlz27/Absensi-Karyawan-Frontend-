@@ -2,17 +2,16 @@ import React, { useState, useRef, useEffect } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { Icon } from "@iconify/react";
 import axios from "axios";
-// Import semua yang lu butuhin dari file Service yang udah kita rapihin
+import { toast } from "react-toastify"; // Pastikan ini diimport ya bro
 import API, {
   postShiftTambahan,
+  postShiftBiasa, // Pastikan ini juga diimport
   getUsers,
 } from "../../../store/api/AbsensiService";
 
 const ManageShift = () => {
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedUsers, setSelectedUsers] = useState([]);
-
   const [savedDefaultShift, setSavedDefaultShift] = useState("");
 
   const [extraShifts, setExtraShifts] = useState(() => {
@@ -44,15 +43,19 @@ const ManageShift = () => {
 
   const { data: shiftData, isLoading: isShiftLoading } = useQuery({
     queryKey: ["shift-master"],
-    queryFn: () =>
-      axios
-        .get("http://127.0.0.1:8000/api/shifts/1", {
-          headers: {
-            Authorization: `Bearer ${token}`, // Sekarang token udah ada isinya
-            Accept: "application/json",
-          },
-        })
-        .then((res) => res.data),
+    queryFn: async () => {
+      const { data } = await API.get("/shifts/1");
+      return data;
+    },
+    staleTime: 5000,
+  });
+
+  const { data: allMasterShifts, isLoading: loadingMaster } = useQuery({
+    queryKey: ["shift-all"],
+    queryFn: async () => {
+      const { data } = await API.get("/shifts");
+      return data;
+    },
   });
 
   const dayMap = {
@@ -65,7 +68,6 @@ const ManageShift = () => {
     Sunday: "Minggu",
   };
 
-  // Tambahkan pengecekan key ganda (snake_case dan camelCase) biar aman
   const activeDaysFromApi =
     (shiftData?.hari_kerja || shiftData?.hariKerja)?.map(
       (d) => dayMap[d.hari],
@@ -73,13 +75,11 @@ const ManageShift = () => {
 
   useEffect(() => {
     if (shiftData) {
-      // Pastikan data jam ada sebelum substring
       const jamMasuk = shiftData.jam_masuk?.substring(0, 5) || "08:00";
       const jamPulang = shiftData.jam_pulang?.substring(0, 5) || "17:00";
 
       setSavedDefaultShift(`${jamMasuk} - ${jamPulang}`);
 
-      // Langsung set tempSelectedDays dari data API yang baru ditarik
       if (activeDaysFromApi.length > 0) {
         setTempSelectedDays(activeDaysFromApi);
         setSelectedDay(activeDaysFromApi[0]);
@@ -87,20 +87,75 @@ const ManageShift = () => {
     }
   }, [shiftData]);
 
-  const mutation = useMutation({
-    mutationFn: (payload) => {
-      // payload di sini HARUS berupa objek: { shift_id, user_ids, hari, kantor_id }
-      return postShiftTambahan(payload);
-    },
+  // 1. MUTATION SHIFT TAMBAHAN
+  const saveShiftMutation = useMutation({
+    mutationFn: (payload) => postShiftTambahan(payload),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["fetch-users"] });
-      alert("Shift berhasil disimpan!");
+      queryClient.invalidateQueries(["user-shifts", selectedUserDetail?.id]);
     },
     onError: (err) => {
-      console.error("Detail Error:", err.response?.data); // <--- LIHAT INI DI CONSOLE!
-      alert("Gagal: " + (err.response?.data?.message || "Cek console"));
+      toast.error(err.response?.data?.message || "Gagal simpan shift tambahan");
     },
   });
+
+  // 2. MUTATION SHIFT BIASA
+  const saveShiftBiasaMutation = useMutation({
+    mutationFn: (payload) => postShiftBiasa(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries(["user-shifts", selectedUserDetail?.id]);
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || "Gagal simpan shift biasa");
+    },
+  });
+
+  // 3. FUNGSI EKSEKUSI TOMBOL SIMPAN
+  const handleSaveAllShiftsToBackend = async () => {
+    if (!selectedUserDetail?.id) {
+      toast.error("Pilih karyawan terlebih dahulu!");
+      return;
+    }
+
+    const basePayload = {
+      user_ids: [selectedUserDetail.id],
+      shift_id: 1, // Hardcode Master Shift
+      kantor_id: 1, // Hardcode Kantor Pusat
+    };
+
+    try {
+      // A. Eksekusi Shift Biasa Dulu (Senin - Jumat otomatis)
+      await saveShiftBiasaMutation.mutateAsync(basePayload);
+
+      // B. Eksekusi Shift Tambahan Jika Ada (Misal: Sabtu)
+      if (userSpecificShifts.length > 0) {
+        const tambahanPromises = userSpecificShifts.map((shift) => {
+          const indoToEng = {
+            Senin: "Monday",
+            Selasa: "Tuesday",
+            Rabu: "Wednesday",
+            Kamis: "Thursday",
+            Jumat: "Friday",
+            Sabtu: "Saturday",
+            Minggu: "Sunday",
+          };
+          const hariInggris = indoToEng[shift.day] || shift.day;
+
+          return saveShiftMutation.mutateAsync({
+            ...basePayload,
+            hari: hariInggris,
+          });
+        });
+
+        // Tunggu semua shift tambahan selesai di-save
+        await Promise.all(tambahanPromises);
+      }
+
+      toast.success("Seluruh jadwal shift berhasil diplot!");
+    } catch (error) {
+      console.error("Gagal proses shift:", error);
+    }
+  };
+  // ==========================================
 
   const jamList = Array.from({ length: 24 }, (_, i) =>
     i.toString().padStart(2, "0"),
@@ -129,11 +184,11 @@ const ManageShift = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["shift-master"] });
       setShowHariModal(false);
-      alert("Berhasil memperbarui hari kerja!");
+      toast.success("Berhasil memperbarui hari kerja!");
     },
     onError: (err) => {
       const message = err.response?.data?.message || err.message;
-      alert("Error: " + message);
+      toast.error("Error: " + message);
     },
   });
 
@@ -172,6 +227,18 @@ const ManageShift = () => {
     setShowApplyShiftModal(false);
   };
 
+  const onSelectShift = (master) => {
+    setUserSpecificShifts([
+      ...userSpecificShifts,
+      {
+        id: Date.now(),
+        shift_id: master.id,
+        day: selectedDay,
+        time: `${master.jam_masuk.substring(0, 5)} - ${master.jam_pulang.substring(0, 5)}`,
+      },
+    ]);
+  };
+
   const handleScroll = (e, type) => {
     const index = Math.round(e.target.scrollTop / 48);
     const val = type.includes("jam") ? jamList[index] : menitList[index];
@@ -182,71 +249,22 @@ const ManageShift = () => {
     else if (type === "menitPulang") setSelectedMenitPulang(val);
   };
 
-  const handleConfirmShift = () => {
-    const timeString = `${selectedJam}:${selectedMenit} - ${selectedJamPulang}:${selectedMenitPulang}`;
-    if (modalMode === "biasa") {
-      setSavedDefaultShift(timeString);
-    } else {
-      if (editingShiftId) {
-        setExtraShifts((prev) =>
-          prev.map((s) =>
-            s.id === editingShiftId
-              ? {
-                  ...s,
-                  day: selectedDay,
-                  time: timeString,
-                  color: selectedColor,
-                }
-              : s,
-          ),
-        );
-      } else {
-        setExtraShifts((prev) => [
-          ...prev,
-          {
-            id: Date.now(),
-            day: selectedDay,
-            time: timeString,
-            color: selectedColor,
-          },
-        ]);
-      }
-    }
-    setEditingShiftId(null);
-    setShowShiftModal(false);
-  };
+  const handleConfirmShift = async () => {
+    const jamMasuk = `${selectedJam}:${selectedMenit}:00`;
+    const jamPulang = `${selectedJamPulang}:${selectedMenitPulang}:00`;
 
-  const handleSaveToBackend = async () => {
-    if (!selectedUserDetail) return;
-
-    const indoToEng = {
-      Senin: "Monday",
-      Selasa: "Tuesday",
-      Rabu: "Wednesday",
-      Kamis: "Thursday",
-      Jumat: "Friday",
-      Sabtu: "Saturday",
-      Minggu: "Sunday",
+    const payload = {
+      nama: `Shift ${selectedDay} (${selectedJam}:${selectedMenit})`, // Nama otomatis
+      jam_masuk: jamMasuk,
+      jam_pulang: jamPulang,
     };
 
     try {
-      const promises = userSpecificShifts.map((shift) => {
-        const payload = {
-          shift_id: 1,
-          user_ids: [selectedUserDetail.id],
-          hari: indoToEng[shift.day] || shift.day,
-          kantor_id: 1,
-        };
-
-        return postShiftTambahan(payload);
-      });
-
-      await Promise.all(promises);
-      alert("Semua shift tambahan berhasil disimpan!");
-      setSelectedUserDetail(null);
-      queryClient.invalidateQueries({ queryKey: ["fetch-users"] });
-    } catch (err) {
-      alert("Gagal simpan: " + (err.response?.data?.message || err.message));
+      await API.post("/shifts", payload);
+      toast.success("Master Shift baru berhasil masuk Database!");
+      setShowShiftModal(false);
+    } catch (error) {
+      toast.error("Gagal simpan ke database");
     }
   };
 
@@ -325,6 +343,11 @@ const ManageShift = () => {
           />{" "}
           Manage Shift
         </h2>
+        {userShifts?.map((shift) => (
+          <div key={shift.id}>
+            {shift.tipe} - {shift.hari}
+          </div>
+        ))}
 
         {/* DEFAULT SECTION */}
         <div className="space-y-3">
@@ -335,7 +358,7 @@ const ManageShift = () => {
             <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-white/5 px-4 py-2.5 rounded-full">
               <div className="w-2.5 h-2.5 rounded-full bg-indigo-500" />
               <span className="text-sm font-bold text-slate-700 dark:text-white">
-                Hari Biasa, {savedDefaultShift}
+                {shiftData?.nama || "Loading..."}, {savedDefaultShift}
               </span>
             </div>
             <button
@@ -359,40 +382,50 @@ const ManageShift = () => {
             Shift Tambahan
           </p>
           <div className="flex flex-wrap gap-2 items-center">
-            {extraShifts.map((s) => (
-              <div
-                key={s.id}
-                className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 pl-2 pr-1.5 py-1.5 rounded-full text-sm font-bold transition-all hover:border-indigo-400 cursor-pointer group"
-              >
+            {allMasterShifts
+              ?.filter((s) => s.id !== 1)
+              .map((s) => (
                 <div
-                  onClick={() => handleEditShift(s)}
-                  className="flex items-center gap-2"
+                  key={s.id}
+                  className="flex items-center gap-2 bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 pl-3 pr-2 py-1.5 rounded-full text-sm font-bold text-indigo-700 dark:text-indigo-300 transition-all hover:border-indigo-400 group"
                 >
-                  <div
-                    className="w-2.5 h-2.5 rounded-full"
-                    style={{ backgroundColor: s.color }}
-                  />
-                  <span className="text-slate-700 dark:text-slate-200">
-                    {s.day.substring(0, 3)}, {s.time}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2.5 h-2.5 rounded-full bg-indigo-500" />
+                    <span className="">
+                      {s.nama}: {s.jam_masuk.substring(0, 5)} -{" "}
+                      {s.jam_pulang.substring(0, 5)}
+                    </span>
+                  </div>
+
+                  {/* 2. Tombol Hapus Master Shift dari Database */}
+                  <button
+                    onClick={async () => {
+                      if (window.confirm(`Hapus master shift "${s.nama}"?`)) {
+                        try {
+                          await API.delete(`/shifts/${s.id}`);
+                          // Refresh data biar hilang dari list
+                          queryClient.invalidateQueries(["shift-all"]);
+                          toast.success("Master Shift dihapus");
+                        } catch (err) {
+                          toast.error("Gagal menghapus shift");
+                        }
+                      }
+                    }}
+                    className="w-5 h-5 flex items-center justify-center rounded-full hover:bg-rose-500/10 text-slate-400 hover:text-rose-500 transition-colors"
+                  >
+                    <Icon icon="ph:x-bold" className="text-xs" />
+                  </button>
                 </div>
-                <button
-                  onClick={() =>
-                    setExtraShifts((prev) => prev.filter((x) => x.id !== s.id))
-                  }
-                  className="w-5 h-5 flex items-center justify-center rounded-full hover:bg-rose-500/10 dark:hover:bg-rose-500/20 text-slate-400 hover:text-rose-500"
-                >
-                  <Icon icon="ph:x-bold" className="text-xs" />
-                </button>
-              </div>
-            ))}
+              ))}
+
+            {/* Tombol Tambah Master Shift Baru */}
             <button
               onClick={() => {
                 setEditingShiftId(null);
                 setModalMode("tambahan");
                 setShowShiftModal(true);
               }}
-              className="w-8 h-8 rounded-full border border-dashed border-slate-300 dark:border-slate-600 flex items-center justify-center text-slate-400 hover:text-indigo-500 transition-all"
+              className="w-8 h-8 rounded-full border border-dashed border-slate-300 dark:border-slate-600 flex items-center justify-center text-slate-400 hover:text-indigo-500 hover:border-indigo-500 transition-all"
             >
               <Icon icon="ph:plus-bold" />
             </button>
@@ -503,7 +536,6 @@ const ManageShift = () => {
         </div>
       )}
 
-      {/* MODAL DETAIL USER (CARD) */}
       {selectedUserDetail && (
         <div
           className="fixed inset-0 z-[1100] flex items-center justify-center p-6 bg-slate-900/60 dark:bg-black/80 backdrop-blur-md"
@@ -536,17 +568,51 @@ const ManageShift = () => {
                   Shift Tambahan
                 </p>
                 <div className="flex flex-wrap gap-2 items-center">
+                  {/* 1. Tampilkan data yang SUDAH ADA di Database */}
+                  {userShifts
+                    ?.filter((s) => s.tipe === "tambahan")
+                    .map((s) => (
+                      <div
+                        key={`db-${s.id}`}
+                        className="flex items-center gap-2 bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 pl-3 pr-2 py-1.5 rounded-full text-sm font-bold text-indigo-600 dark:text-indigo-300"
+                      >
+                        <div className="w-2 h-2 rounded-full bg-indigo-500" />
+                        <span>
+                          {dayMap[s.hari] || s.hari},{" "}
+                          {s.shift?.jam_masuk?.substring(0, 5)} -{" "}
+                          {s.shift?.jam_pulang?.substring(0, 5)}
+                        </span>
+                        <button
+                          onClick={async () => {
+                            if (window.confirm("Hapus jadwal dari database?")) {
+                              try {
+                                await API.delete(`/user-shifts/${s.id}`);
+                                queryClient.invalidateQueries([
+                                  "user-shifts",
+                                  selectedUserDetail?.id,
+                                ]);
+                                toast.success("Jadwal dihapus permanen");
+                              } catch (err) {
+                                toast.error("Gagal hapus");
+                              }
+                            }
+                          }}
+                          className="hover:text-rose-500 transition-colors"
+                        >
+                          <Icon icon="ph:x-bold" className="text-xs" />
+                        </button>
+                      </div>
+                    ))}
+
+                  {/* 2. Tampilkan data DRAF (yang baru dipilih tapi belum disimpan) */}
                   {userSpecificShifts.map((s) => (
                     <div
-                      key={s.id}
-                      className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 pl-3 pr-2 py-1.5 rounded-full text-sm font-bold text-slate-700 dark:text-slate-200"
+                      key={`temp-${s.id}`}
+                      className="flex items-center gap-2 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 pl-3 pr-2 py-1.5 rounded-full text-sm font-bold text-amber-600 dark:text-amber-400 animate-pulse"
                     >
-                      <div
-                        className="w-2 h-2 rounded-full"
-                        style={{ backgroundColor: s.color }}
-                      />
+                      <div className="w-2 h-2 rounded-full bg-amber-500" />
                       <span>
-                        {s.day}, {s.time}
+                        {s.day}, {s.time} (Draft)
                       </span>
                       <button
                         onClick={() =>
@@ -554,25 +620,32 @@ const ManageShift = () => {
                             prev.filter((x) => x.id !== s.id),
                           )
                         }
+                        className="hover:text-rose-500"
                       >
                         <Icon icon="ph:x-bold" className="text-xs" />
                       </button>
                     </div>
                   ))}
+
                   <button
                     onClick={() => setShowApplyShiftModal(true)}
-                    className="w-8 h-8 rounded-full border border-dashed border-slate-300 dark:border-slate-600 flex items-center justify-center text-slate-400"
+                    className="w-8 h-8 rounded-full border border-dashed border-slate-300 dark:border-slate-600 flex items-center justify-center text-slate-400 hover:border-indigo-500 hover:text-indigo-500 transition-all"
                   >
-                    +
+                    <Icon icon="ph:plus-bold" />
                   </button>
                 </div>
               </div>
               <button
-                onClick={handleSaveToBackend} // Ganti dari setSelectedUserDetail(null)
-                disabled={mutation.isPending}
-                className="w-full py-4 bg-indigo-600 rounded-2xl font-bold text-white shadow-xl active:scale-95 transition-all disabled:opacity-50"
+                onClick={handleSaveAllShiftsToBackend}
+                disabled={
+                  saveShiftBiasaMutation.isPending ||
+                  saveShiftMutation.isPending
+                }
+                className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 rounded-2xl font-bold text-white shadow-xl shadow-indigo-500/30 active:scale-95 transition-all disabled:opacity-50"
               >
-                {mutation.isPending ? "Menyimpan..." : "Simpan Perubahan"}
+                {saveShiftBiasaMutation.isPending || saveShiftMutation.isPending
+                  ? "Menyimpan ke Database..."
+                  : "Simpan Perubahan"}
               </button>
             </div>
           </div>
@@ -589,34 +662,78 @@ const ManageShift = () => {
             className="bg-white dark:bg-[#1a222c] w-full max-w-sm rounded-[24px] border border-slate-200 dark:border-white/10 overflow-hidden shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <p className="text-xs font-black uppercase p-4 text-slate-400 dark:text-slate-500 text-center border-b border-slate-100 dark:border-white/5">
-              Pilih Shift
-            </p>
-            <div className="max-h-60 overflow-y-auto p-2">
-              {extraShifts.length > 0 ? (
-                extraShifts.map((preset) => (
+            <div className="p-4 border-b border-slate-100 dark:border-white/5 flex justify-between items-center">
+              <p className="text-xs font-black uppercase text-slate-400 dark:text-slate-500">
+                Pilih Master Shift
+              </p>
+              <button onClick={() => setShowApplyShiftModal(false)}>
+                <Icon icon="ph:x-bold" className="text-slate-400" />
+              </button>
+            </div>
+
+            <div className="max-h-80 overflow-y-auto p-2 space-y-1">
+              {loadingMaster ? (
+                <p className="text-center py-4 text-xs">Memuat data...</p>
+              ) : allMasterShifts?.length > 0 ? (
+                allMasterShifts.map((master) => (
                   <button
-                    key={preset.id}
-                    onClick={() => handleSelectShift(preset)}
-                    className="w-full flex items-center gap-3 p-3 hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl transition-all"
+                    key={master.id}
+                    onClick={() => {
+                      const newShiftEntry = {
+                        id: Date.now(),
+                        shift_id: master.id,
+                        day: selectedDay,
+                        time: `${master.jam_masuk.substring(0, 5)} - ${master.jam_pulang.substring(0, 5)}`,
+                        color: master.id === 1 ? "#3B82F6" : "#EAB308",
+                        nama: master.nama,
+                      };
+
+                      setUserSpecificShifts([
+                        ...userSpecificShifts,
+                        newShiftEntry,
+                      ]);
+                      setShowApplyShiftModal(false);
+                      toast.info(`Menambahkan ${master.nama} ke jadwal.`);
+                    }}
+                    className="w-full flex items-center justify-between p-3 hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl transition-all group"
                   >
-                    <div
-                      className="w-2.5 h-2.5 rounded-full"
-                      style={{ backgroundColor: preset.color }}
-                    />
-                    <div className="text-left text-sm">
-                      <p className="font-bold text-slate-800 dark:text-white">
-                        {preset.day}
-                      </p>
-                      <p className="text-slate-400">{preset.time}</p>
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`w-2.5 h-2.5 rounded-full ${master.id === 1 ? "bg-blue-500" : "bg-amber-500"}`}
+                      />
+                      <div className="text-left">
+                        <p className="font-bold text-sm text-slate-800 dark:text-white group-hover:text-indigo-500">
+                          {master.nama}
+                        </p>
+                        <p className="text-xs text-slate-400 font-medium">
+                          {master.jam_masuk.substring(0, 5)} -{" "}
+                          {master.jam_pulang.substring(0, 5)}
+                        </p>
+                      </div>
                     </div>
+                    <Icon
+                      icon="ph:plus-circle-bold"
+                      className="text-slate-300 group-hover:text-indigo-500 text-lg"
+                    />
                   </button>
                 ))
               ) : (
-                <p className="text-xs text-slate-400 p-4 text-center italic">
-                  Buat shift master dulu Bro.
-                </p>
+                <div className="text-center py-8">
+                  <Icon
+                    icon="ph:clock-slash-duotone"
+                    className="text-4xl mx-auto mb-2 text-slate-300"
+                  />
+                  <p className="text-xs text-slate-400 italic">
+                    Belum ada Master Shift.
+                  </p>
+                </div>
               )}
+            </div>
+
+            <div className="p-3 bg-slate-50 dark:bg-slate-800/50">
+              <p className="text-[10px] text-center text-slate-400 leading-tight">
+                *Shift akan diterapkan pada hari <strong>{selectedDay}</strong>
+              </p>
             </div>
           </div>
         </div>
