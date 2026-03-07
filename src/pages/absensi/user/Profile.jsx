@@ -90,42 +90,46 @@ const UserProfile = () => {
     const image = imgRef.current;
     if (!image || !completedCrop) return;
 
+    // Batas maksimal ukuran foto profil (mencegah memory crash di HP)
+    const MAX_DIMENSION = 512; 
+
+    const scaleX = image.naturalWidth / image.width;
+    const scaleY = image.naturalHeight / image.height;
+    
+    // Ukuran asli dari crop (bisa mencapai ribuan pixel di HP)
+    const cropWidthOriginal = completedCrop.width * scaleX;
+    const cropHeightOriginal = completedCrop.height * scaleY;
+
+    // Hitung ratio untuk melakukan downscale jika gambar aslinya terlalu besar
+    let ratio = 1;
+    if (cropWidthOriginal > MAX_DIMENSION || cropHeightOriginal > MAX_DIMENSION) {
+        ratio = Math.min(MAX_DIMENSION / cropWidthOriginal, MAX_DIMENSION / cropHeightOriginal);
+    }
+
+    const finalWidth = Math.floor(cropWidthOriginal * ratio);
+    const finalHeight = Math.floor(cropHeightOriginal * ratio);
+
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // Menyesuaikan ratio pixel asli layar dengan skala gambar 
-    // agar hasil crop tajam dan tidak corrupted di mobile
-    const scaleX = image.naturalWidth / image.width;
-    const scaleY = image.naturalHeight / image.height;
-    const pixelRatio = window.devicePixelRatio || 1;
-
-    canvas.width = Math.floor(completedCrop.width * scaleX * pixelRatio);
-    canvas.height = Math.floor(completedCrop.height * scaleY * pixelRatio);
-
-    ctx.scale(pixelRatio, pixelRatio);
+    // Set ukuran canvas langsung ke ukuran final (misal 512x512)
+    canvas.width = finalWidth;
+    canvas.height = finalHeight;
     ctx.imageSmoothingQuality = 'high';
 
-    const cropX = completedCrop.x * scaleX;
-    const cropY = completedCrop.y * scaleY;
-    const cropWidth = completedCrop.width * scaleX;
-    const cropHeight = completedCrop.height * scaleY;
-
-    // Bersihkan canvas dan gambar area terpilih
-    ctx.save();
-    ctx.translate(-cropX, -cropY);
+    // Bersihkan canvas dan gambar area terpilih sambil menerapkan scale
     ctx.drawImage(
       image,
+      completedCrop.x * scaleX, // titik X di gambar asli
+      completedCrop.y * scaleY, // titik Y di gambar asli
+      cropWidthOriginal,        // lebar area crop di gambar asli
+      cropHeightOriginal,       // tinggi area crop di gambar asli
       0,
       0,
-      image.naturalWidth,
-      image.naturalHeight,
-      0,
-      0,
-      image.naturalWidth,
-      image.naturalHeight
+      finalWidth,              // lebar canvas akhir 
+      finalHeight              // tinggi canvas akhir
     );
-    ctx.restore();
 
     return new Promise((resolve) => {
       canvas.toBlob((blob) => {
