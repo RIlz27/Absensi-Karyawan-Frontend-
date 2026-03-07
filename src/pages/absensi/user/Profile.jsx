@@ -1,9 +1,25 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Icon } from "@iconify/react";
 import API from "@/store/api/absensiService.js";
 import { toast } from "react-toastify";
 import { useDispatch } from "react-redux";
 import { setUser as setReduxUser } from "@/store/api/auth/authSlice";
+import ReactCrop, { centerCrop, makeAspectCrop } from 'react-image-crop';
+import 'react-image-crop/dist/ReactCrop.css';
+
+// Helper function to handle center crop
+function getCenterCrop(mediaWidth, mediaHeight) {
+  return centerCrop(
+    makeAspectCrop(
+      { unit: '%', width: 90 },
+      1, // 1:1 Aspect Ratio (Square)
+      mediaWidth,
+      mediaHeight
+    ),
+    mediaWidth,
+    mediaHeight
+  );
+}
 
 const UserProfile = () => {
   const dispatch = useDispatch();
@@ -17,9 +33,16 @@ const UserProfile = () => {
   });
 
   const [avatarPreview, setAvatarPreview] = useState(null);
-  const [avatarFile, setAvatarFile] = useState(null);
+  const [avatarBlob, setAvatarBlob] = useState(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
+
+  // Cropping State
+  const [imgSrc, setImgSrc] = useState('');
+  const [cropModalOpen, setCropModalOpen] = useState(false);
+  const [crop, setCrop] = useState();
+  const [completedCrop, setCompletedCrop] = useState(null);
+  const imgRef = useRef(null);
 
   useEffect(() => {
     fetchProfile();
@@ -31,10 +54,6 @@ const UserProfile = () => {
       setUser(res.data);
       setFormData({ name: res.data.name, password: "" });
       if (res.data.avatar) {
-        // Build the full URL assuming Laravel default setup, or use AbsensiService logic
-        // Because "asset('storage/X')" brings full URL from backend, 
-        // we might just need to construct it if it's relative.
-        // For safety we assume it's relative like "avatars/xxx.jpg"
         const baseUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || "http://localhost:8000";
         setAvatarPreview(`${baseUrl}/storage/${res.data.avatar}`);
       }
@@ -46,54 +65,101 @@ const UserProfile = () => {
     }
   };
 
-  const handleAvatarChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
+  const onSelectFile = (e) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
       if (file.size > 2 * 1024 * 1024) {
         toast.warning("Ukuran maksimal file foto adalah 2MB");
         return;
       }
-      setAvatarFile(file);
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setAvatarPreview(reader.result);
-      };
+      reader.addEventListener('load', () => {
+        setImgSrc(reader.result?.toString() || '');
+        setCropModalOpen(true); // Open the modal once image is loaded in memory
+      });
       reader.readAsDataURL(file);
     }
   };
 
+  const onImageLoad = (e) => {
+    const { width, height } = e.currentTarget;
+    setCrop(getCenterCrop(width, height));
+  };
+
+  const getCroppedImg = async () => {
+    const image = imgRef.current;
+    if (!image || !completedCrop) return;
+
+    const scaleX = image.naturalWidth / image.width;
+    const scaleY = image.naturalHeight / image.height;
+    const canvas = document.createElement("canvas");
+    canvas.width = completedCrop.width;
+    canvas.height = completedCrop.height;
+    const ctx = canvas.getContext("2d");
+
+    ctx.drawImage(
+      image,
+      completedCrop.x * scaleX,
+      completedCrop.y * scaleY,
+      completedCrop.width * scaleX,
+      completedCrop.height * scaleY,
+      0,
+      0,
+      completedCrop.width,
+      completedCrop.height
+    );
+
+    return new Promise((resolve) => {
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          toast.error("Gagal melakukan crop pada gambar.");
+          resolve(null);
+          return;
+        }
+        // Force blob to jpg to ensure high compatibility avoiding weird corruptions
+        const finalBlob = new Blob([blob], { type: 'image/jpeg' });
+        
+        // Buat URL u/ preview baru
+        const previewUrl = URL.createObjectURL(finalBlob);
+        setAvatarPreview(previewUrl);
+        setAvatarBlob(finalBlob);
+        setCropModalOpen(false); // Close Modal
+
+        setImgSrc(""); // Reset
+        resolve(finalBlob);
+      }, "image/jpeg", 0.9); // 90% quality
+    });
+  };
+
   const uploadAvatar = async () => {
-    if (!avatarFile) {
-        toast.info("Pilih foto terlebih dahulu sebelum menyimpan.");
+    if (!avatarBlob) {
+        toast.info("Pilih dan sesuaikan foto terlebih dahulu.");
         return;
     }
     setUploadingAvatar(true);
     try {
       const formData = new FormData();
-      formData.append("avatar", avatarFile);
+      // append the generic blob with a generic name
+      formData.append("avatar", avatarBlob, "profile_avatar.jpg");
 
-      // Using generic axios to allow multipart/form-data or AbsensiService
       const res = await API.post("/profile/avatar", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      toast.success(res.data.message);
+      toast.success("Foto profil berhasil diperbarui, tampilan mungkin membutuhkan beberapa saat untuk terefresh sepenuhnya.");
       
-      // Update local and potentially global state
       if (res.data.user) {
-        // Update local storage to persist the avatar URL
         const cachedUser = JSON.parse(localStorage.getItem("user") || "{}");
         const updatedCache = { ...cachedUser, ...res.data.user };
         localStorage.setItem("user", JSON.stringify(updatedCache));
-        
-        // Update Redux state so NavMenu/Header updates instantly
         dispatch(setReduxUser(updatedCache));
       }
       
       fetchProfile();
+      setAvatarBlob(null); // Clear blob so the button disappears after success
     } catch (err) {
       console.error(err);
-      toast.error(err.response?.data?.message || "Gagal mengunggah foto profil.");
+      toast.error(err.response?.data?.message || "Gagal mengunggah foto profil, format tidak didukung.");
     } finally {
       setUploadingAvatar(false);
     }
@@ -110,18 +176,14 @@ const UserProfile = () => {
       toast.success(res.data.message);
       
       if (res.data.user) {
-        // Update local storage to persist the name
         const cachedUser = JSON.parse(localStorage.getItem("user") || "{}");
         const updatedCache = { ...cachedUser, ...res.data.user };
         localStorage.setItem("user", JSON.stringify(updatedCache));
-        
-        // Update Redux state so NavMenu/Header updates instantly
         dispatch(setReduxUser(updatedCache));
       }
 
-      // Re-fetch to confirm update
       fetchProfile();
-      setFormData(prev => ({ ...prev, password: "" })); // Clear password field
+      setFormData(prev => ({ ...prev, password: "" }));
     } catch (err) {
       console.error(err);
       toast.error(err.response?.data?.message || "Gagal memperbarui profil.");
@@ -139,30 +201,28 @@ const UserProfile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0f172a] pb-24">
-      {/* Decorative Background */}
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0f172a] pb-24 relative">
       <div className="bg-gradient-to-b from-indigo-600 to-purple-600 h-64 -mx-5 rounded-b-[64px] absolute inset-x-0 top-0 z-0"></div>
 
       <div className="px-5 pt-10 relative z-10 max-w-2xl mx-auto">
-        {/* Header */}
         <div className="text-center text-white mb-8">
           <h2 className="text-2xl font-black mb-1">Profil Karyawan</h2>
           <p className="text-indigo-100 text-sm font-medium">Kelola informasi data dirimu</p>
         </div>
 
-        {/* Avatar Section */}
+        {/* Avatar Card */}
         <div className="bg-white dark:bg-slate-800 rounded-[32px] p-6 shadow-xl flex flex-col items-center mb-6">
           <div className="relative mb-4 group">
-            <div className={`w-32 h-32 rounded-full border-4 border-white shadow-lg overflow-hidden bg-slate-100 flex items-center justify-center ${uploadingAvatar ? 'opacity-50' : ''}`}>
+            <div className={`w-36 h-36 rounded-full border-4 border-white shadow-lg overflow-hidden bg-slate-100 flex items-center justify-center ${uploadingAvatar ? 'opacity-50' : ''}`}>
               {avatarPreview ? (
                 <img src={avatarPreview} alt="Avatar Preview" className="w-full h-full object-cover" />
               ) : (
                 <Icon icon="ph:user-circle-bold" className="text-6xl text-slate-400" />
               )}
             </div>
-            <label className="absolute bottom-0 right-0 h-10 w-10 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer transition-transform transform hover:scale-105 active:scale-95">
+            <label className="absolute bottom-1 right-1 h-11 w-11 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer transition-transform transform hover:scale-105 active:scale-95 border-2 border-white">
               <Icon icon="ph:camera-plus-bold" className="text-xl" />
-              <input type="file" className="hidden" accept="image/*" onChange={handleAvatarChange} />
+              <input type="file" className="hidden" accept="image/*" onChange={onSelectFile} />
             </label>
           </div>
           
@@ -171,20 +231,29 @@ const UserProfile = () => {
              <p className="text-sm text-slate-500 dark:text-slate-400 font-medium uppercase tracking-wider">{user?.role === 'admin' ? 'Administrator' : 'Karyawan'}</p>
           </div>
 
-          {avatarFile && (
-            <button 
-              onClick={uploadAvatar}
-              disabled={uploadingAvatar}
-              className="mt-4 flex items-center gap-2 bg-indigo-50 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-400 font-bold px-5 py-2 rounded-xl text-sm transition-all hover:bg-indigo-100"
-            >
-              {uploadingAvatar ? <Icon icon="ph:spinner-gap-bold" className="animate-spin" /> : <Icon icon="ph:upload-simple-bold" />}
-              {uploadingAvatar ? "Mengunggah..." : "Simpan Foto"}
-            </button>
+          {avatarBlob && (
+            <div className="mt-5 w-full flex flex-col gap-2">
+              <button 
+                onClick={uploadAvatar}
+                disabled={uploadingAvatar}
+                className="w-full flex items-center justify-center gap-2 bg-indigo-600 text-white font-bold py-3 rounded-2xl text-sm transition-all hover:bg-indigo-700 shadow-lg shadow-indigo-500/30"
+              >
+                {uploadingAvatar ? <Icon icon="ph:spinner-gap-bold" className="animate-spin text-lg" /> : <Icon icon="ph:upload-simple-bold" className="text-lg" />}
+                {uploadingAvatar ? "Mengunggah..." : "Simpan Foto Profile"}
+              </button>
+              <button 
+                onClick={() => { setAvatarBlob(null); fetchProfile(); }}
+                disabled={uploadingAvatar}
+                className="w-full flex items-center justify-center gap-2 bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 font-bold py-3 rounded-2xl text-sm transition-all hover:bg-slate-200 dark:hover:bg-slate-600"
+              >
+                Batalkan
+              </button>
+            </div>
           )}
         </div>
 
-        {/* Profile Details Form */}
-        <form onSubmit={saveProfile} className="bg-white dark:bg-slate-800 rounded-[32px] p-6 shadow-xl space-y-5">
+        {/* Profile Data Form */}
+        <form onSubmit={saveProfile} className="bg-white dark:bg-slate-800 rounded-[32px] p-6 shadow-xl space-y-5 mb-5">
             <div>
               <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
                 NIP (Nomor Induk Pegawai)
@@ -198,7 +267,6 @@ const UserProfile = () => {
                 />
                 <Icon icon="ph:identification-card-bold" className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xl" />
               </div>
-              <p className="text-[10px] text-slate-400 mt-2">*NIP bersifat unik dan tidak dapat diubah oleh Pihak Karyawan.</p>
             </div>
 
             <div>
@@ -223,7 +291,7 @@ const UserProfile = () => {
               </label>
               <div className="relative">
                 <input
-                  type="password"
+                  type="text"
                   placeholder="Kosongkan jika tidak ingin mengubah"
                   value={formData.password}
                   onChange={(e) => setFormData({...formData, password: e.target.value})}
@@ -238,20 +306,69 @@ const UserProfile = () => {
               <button
                 type="submit"
                 disabled={savingProfile}
-                className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-bold rounded-2xl py-4 shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-slate-800 to-slate-700 dark:from-slate-700 dark:to-slate-600 text-white font-bold rounded-2xl py-4 shadow-xl hover:shadow-2xl transition-all active:scale-95 disabled:opacity-70"
               >
                 {savingProfile ? (
                   <Icon icon="ph:spinner-gap-bold" className="animate-spin text-xl" />
                 ) : (
                   <Icon icon="ph:floppy-disk-back-fill" className="text-xl" />
                 )}
-                {savingProfile ? "Menyimpan..." : "Simpan Perubahan"}
+                {savingProfile ? "Menyimpan..." : "Simpan Username / Sandi"}
               </button>
             </div>
         </form>
       </div>
+
+      {/* CROP MODAL */}
+      {cropModalOpen && (
+        <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-slate-800 p-5 rounded-3xl shadow-2xl w-full max-w-md">
+            <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4 text-center">Sesuaikan Foto Profile</h3>
+            
+            <div className="bg-slate-100 dark:bg-slate-900 rounded-2xl overflow-hidden flex items-center justify-center max-h-[50vh]">
+              {!!imgSrc && (
+                <ReactCrop
+                  crop={crop}
+                  onChange={(_, percentCrop) => setCrop(percentCrop)}
+                  onComplete={(c) => setCompletedCrop(c)}
+                  aspect={1}
+                  circularCrop
+                >
+                  <img
+                    ref={imgRef}
+                    alt="Crop me"
+                    src={imgSrc}
+                    onLoad={onImageLoad}
+                    className="max-h-[50vh] w-auto object-contain"
+                  />
+                </ReactCrop>
+              )}
+            </div>
+
+            <p className="text-xs text-center text-slate-400 mt-3">Gunakan jari atau mouse untuk menggeser kotak pemotong area wajah yang diinginkan.</p>
+
+            <div className="grid grid-cols-2 gap-3 mt-5">
+              <button
+                onClick={() => { setCropModalOpen(false); setImgSrc(''); }}
+                className="py-3 rounded-xl font-bold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-white hover:bg-slate-200 transition-colors"
+              >
+                Batal
+              </button>
+              <button
+                onClick={getCroppedImg}
+                disabled={!completedCrop?.width || !completedCrop?.height}
+                className="py-3 rounded-xl font-bold bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg shadow-indigo-500/20 disabled:opacity-50 transition-colors"
+              >
+                Terapkan Foto
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
 
 export default UserProfile;
+
