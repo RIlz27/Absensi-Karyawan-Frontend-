@@ -90,24 +90,42 @@ const UserProfile = () => {
     const image = imgRef.current;
     if (!image || !completedCrop) return;
 
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    // Menyesuaikan ratio pixel asli layar dengan skala gambar 
+    // agar hasil crop tajam dan tidak corrupted di mobile
     const scaleX = image.naturalWidth / image.width;
     const scaleY = image.naturalHeight / image.height;
-    const canvas = document.createElement("canvas");
-    canvas.width = completedCrop.width;
-    canvas.height = completedCrop.height;
-    const ctx = canvas.getContext("2d");
+    const pixelRatio = window.devicePixelRatio || 1;
 
+    canvas.width = Math.floor(completedCrop.width * scaleX * pixelRatio);
+    canvas.height = Math.floor(completedCrop.height * scaleY * pixelRatio);
+
+    ctx.scale(pixelRatio, pixelRatio);
+    ctx.imageSmoothingQuality = 'high';
+
+    const cropX = completedCrop.x * scaleX;
+    const cropY = completedCrop.y * scaleY;
+    const cropWidth = completedCrop.width * scaleX;
+    const cropHeight = completedCrop.height * scaleY;
+
+    // Bersihkan canvas dan gambar area terpilih
+    ctx.save();
+    ctx.translate(-cropX, -cropY);
     ctx.drawImage(
       image,
-      completedCrop.x * scaleX,
-      completedCrop.y * scaleY,
-      completedCrop.width * scaleX,
-      completedCrop.height * scaleY,
       0,
       0,
-      completedCrop.width,
-      completedCrop.height
+      image.naturalWidth,
+      image.naturalHeight,
+      0,
+      0,
+      image.naturalWidth,
+      image.naturalHeight
     );
+    ctx.restore();
 
     return new Promise((resolve) => {
       canvas.toBlob((blob) => {
@@ -116,18 +134,18 @@ const UserProfile = () => {
           resolve(null);
           return;
         }
-        // Force blob to jpg to ensure high compatibility avoiding weird corruptions
+        
+        // Kompres hingga 0.8 untuk kualitas yang masih sangat tajam tapi ringan
         const finalBlob = new Blob([blob], { type: 'image/jpeg' });
         
-        // Buat URL u/ preview baru
         const previewUrl = URL.createObjectURL(finalBlob);
         setAvatarPreview(previewUrl);
         setAvatarBlob(finalBlob);
-        setCropModalOpen(false); // Close Modal
+        setCropModalOpen(false); // Tutup Modal
 
         setImgSrc(""); // Reset
         resolve(finalBlob);
-      }, "image/jpeg", 0.9); // 90% quality
+      }, "image/jpeg", 0.8); 
     });
   };
 
