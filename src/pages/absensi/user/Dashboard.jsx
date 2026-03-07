@@ -8,6 +8,7 @@ const UserDashboard = () => {
   const [pengajuanLimit, setPengajuanLimit] = useState([]);
   const [stats, setStats] = useState({ hadir: 0, tidakHadir: 0, sisaHari: 0, totalHari: 30 });
   const [weeklyStatus, setWeeklyStatus] = useState([]);
+  const [shiftToday, setShiftToday] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -71,9 +72,15 @@ const UserDashboard = () => {
           totalHari: totalDaysInMonth
         });
 
-        // Compute Weekly Status
+        // Compute Weekly Status & Shift Today
         const meRes = await API.get("/me");
         const userShifts = meRes.data.shifts || [];
+        
+        // Find Today's Shift
+        const currentEnglishDay = now.toLocaleDateString("en-US", { weekday: "long" });
+        const todayShift = userShifts.find(s => s.pivot.hari === currentEnglishDay);
+        setShiftToday(todayShift || null);
+
         // Extract working days in English
         const workingDaysEn = userShifts.map(s => s.pivot.hari);
 
@@ -205,7 +212,7 @@ const UserDashboard = () => {
           </div>
         </div>
 
-        {/* Stats Section */}
+        // Stats Section 
         <div className="mt-8">
           <div className="flex justify-between items-center mb-4 px-1">
             <h4 className="font-bold text-slate-800 dark:text-white text-base tracking-wide flex items-center gap-2">
@@ -255,6 +262,42 @@ const UserDashboard = () => {
                 </p>
               </div>
             ))}
+          </div>
+        </div>
+
+        {/* Shift Hari Ini Section */}
+        <div className="bg-white dark:bg-slate-800 rounded-[32px] p-6 shadow-xl shadow-indigo-900/10 border border-slate-100 dark:border-slate-800 mt-8">
+          <div className="flex justify-between items-center mb-6 px-1 ">
+            <h4 className="font-bold text-slate-800 dark:text-white text-lg tracking-wide">
+              Shift Hari ini
+            </h4>
+            <button className="text-indigo-600 dark:text-indigo-400 text-sm font-medium hover:underline">
+              Lihat Semua Shift
+            </button>
+          </div>
+          
+          <div className="bg-slate-50 dark:bg-[#0f172a] p-5 rounded-[24px] flex items-center justify-between">
+            <div className="flex items-center gap-4">
+               <div className="h-6 w-6 rounded-full bg-indigo-500/20 flex items-center justify-center">
+                  <div className="h-2.5 w-2.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]"></div>
+               </div>
+               <div>
+                  <h4 className="font-bold text-[15px] text-slate-800 dark:text-white mb-0.5">
+                    {shiftToday ? shiftToday.nama : "Tidak ada jadwal"}
+                  </h4>
+                  <p className="text-[12px] font-medium text-slate-500">
+                    {shiftToday ? `${shiftToday.jam_masuk?.substring(0,5) || '--:--'} - ${shiftToday.jam_keluar?.substring(0,5) || '--:--'}` : "Libur / Off"}
+                  </p>
+               </div>
+            </div>
+            <div className="text-right">
+               <p className="font-bold text-[11px] text-slate-800 dark:text-white mb-1">
+                 Hari ini
+               </p>
+               <p className="text-[10px] text-slate-500 font-bold">
+                 {now.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }).replace(":", ".")}
+               </p>
+            </div>
           </div>
         </div>
 
