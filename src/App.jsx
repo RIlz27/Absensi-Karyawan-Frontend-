@@ -1,5 +1,6 @@
 import React, { lazy, Suspense, useState, useEffect } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import axios from "axios";
 
 // home pages  & dashboard
 //import Dashboard from "./pages/dashboard";
@@ -82,8 +83,6 @@ const ChatPage = lazy(() => import("./pages/app/chat"));
 
 const BoardsPage = lazy(() => import("./pages/app/boards"));
 
-// Tambahkan folder /absensi/ di tengah path-nya
-// Pastikan variabel 'GenerateQR' dan path '.../GenerateQR.jsx' sama-sama pakai R besar
 const GenerateQR = lazy(() => import("./pages/absensi/admin/GenerateQR.jsx"));
 const Scanner = lazy(() => import("./pages/absensi/user/Scanner.jsx"));
 const Kantor = lazy(() => import("./pages/absensi/admin/Kantor.jsx"));
@@ -103,11 +102,42 @@ import AuthLayout from "./layout/AuthLayout";
 // ------- Setup check is now handled in AuthLayout -------
 
 function App() {
+  const navigate = useNavigate();
+  const [isConfigured, setIsConfigured] = useState(null);
+
+  useEffect(() => {
+    const checkSetup = async () => {
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_API_BASE_URL}/initial-setup/check`, // <--- Sesuaikan path-nya
+          {
+            headers: { "ngrok-skip-browser-warning": "69420" },
+          },
+        );
+
+        // Jika SetupController balikkan { is_setup: false }
+        if (response.data.is_setup === false) {
+          setIsConfigured(false);
+          navigate("/setup");
+        } else {
+          setIsConfigured(true);
+        }
+      } catch (error) {
+        console.error("Koneksi Ngrok Gagal", error);
+      }
+    };
+
+    checkSetup();
+  }, [navigate]);
+
+  // Sambil nunggu pengecekan, tampilin loading biar gak kedip ke login
+  if (isConfigured === null) return <Loading />;
+
   return (
     <main className="App  relative">
       <Routes>
         <Route path="/" element={<AuthLayout />}>
-          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route index element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<Login />} />
           <Route path="/login2" element={<Login2 />} />
           <Route path="/register" element={<Register />} />
