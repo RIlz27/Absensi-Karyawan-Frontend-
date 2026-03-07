@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getUsers, createUser, deleteUser } from "@/store/api/absensiService.js";
+import { getUsers, createUser, deleteUser, getKantors } from "@/store/api/absensiService.js";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import { toast } from "react-toastify";
@@ -14,7 +14,15 @@ const EmployeeManagement = () => {
     name: "",
     nip: "",
     role: "karyawan",
+    kantor_id: "",
   });
+
+  // Fetch Kantors
+  const { data: kantorsData } = useQuery({
+    queryKey: ["fetch-kantors"],
+    queryFn: getKantors,
+  });
+  const kantors = Array.isArray(kantorsData) ? kantorsData : [];
 
   // Fetch Karyawan
   const { data: usersData, isLoading } = useQuery({
@@ -65,7 +73,8 @@ const EmployeeManagement = () => {
 
     const payload = {
       ...form,
-      kantor_id: 1,
+      // Jika kantor_id kosong, pakai kantor pertama yang tersedia
+      kantor_id: form.kantor_id || (kantors.length > 0 ? kantors[0].id : 1),
     };
 
     mutation.mutate(payload);
@@ -198,6 +207,23 @@ const EmployeeManagement = () => {
                         <option value="admin">Admin</option>
                       </select>
                     </div>
+                  </div>
+
+                  <div>
+                    <label className={labelClass}>Penempatan Kantor</label>
+                    <select
+                      className={inputClass}
+                      value={form.kantor_id}
+                      onChange={(e) => setForm({ ...form, kantor_id: e.target.value })}
+                      required
+                    >
+                      <option value="" disabled>-- Pilih Kantor --</option>
+                      {kantors.map((k) => (
+                        <option key={k.id} value={k.id}>
+                          {k.nama}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <Button
                     type="submit"
