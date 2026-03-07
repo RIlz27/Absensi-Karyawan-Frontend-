@@ -23,7 +23,7 @@ L.Marker.prototype.options.icon = DefaultIcon;
 import Card from "@/components/ui/Card";
 import Icon from "@/components/ui/Icon";
 import Button from "@/components/ui/Button";
-import API, { getKantors } from "@/store/api/absensiService";
+import API, { getKantors } from "@/store/api/absensiService.js";
 import { toast } from "react-toastify";
 
 function ChangeView({ center, zoom }) {

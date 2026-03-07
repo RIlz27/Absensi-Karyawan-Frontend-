@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getUsers, createUser, getKantors } from "@/store/api/absensiService";
+import { getUsers, createUser, getKantors } from "@/store/api/absensiService.js";
 import Card from "@/components/ui/Card";
 import Icon from "@/components/ui/Icon";
 import Button from "@/components/ui/Button";

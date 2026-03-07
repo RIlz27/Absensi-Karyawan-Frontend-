@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { getKantors } from "@/store/api/absensiService";
+import { getKantors } from "@/store/api/absensiService.js";
 import { toast } from "react-toastify";
 
 import Card from "@/components/ui/Card";

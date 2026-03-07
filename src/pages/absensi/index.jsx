@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { generateQr } from "@/store/api/absensiService";
+import { generateQr } from "@/store/api/absensiService.js.js";
 import Card from "@/components/ui/Card"; // Pake komponen card bawaan template lo
 import Button from "@/components/ui/Button"; 
 import { QRCodeCanvas } from "qrcode.react";
