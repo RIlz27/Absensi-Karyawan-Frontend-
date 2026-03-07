@@ -40,7 +40,11 @@ const LoginForm = () => {
 
   const onSubmit = async (data) => {
     try {
-      const response = await login(data).unwrap();
+      const payload = {
+        ...data,
+        nip: data.nip.trim()
+      };
+      const response = await login(payload).unwrap();
       const token = response.token || response.access_token;
 
       if (token) {

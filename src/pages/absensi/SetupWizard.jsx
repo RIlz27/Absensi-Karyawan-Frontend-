@@ -428,7 +428,12 @@ export default function SetupWizard() {
           toleransi_menit: parseInt(kantor.toleransi_menit),
         },
         shift,
-        admin,
+        admin: {
+          ...admin,
+          nip: admin.nip.trim(),
+          password: admin.password.trim(),
+          password_confirmation: admin.password_confirmation.trim()
+        },
       }, {
         headers: { "ngrok-skip-browser-warning": "69420" }
       });

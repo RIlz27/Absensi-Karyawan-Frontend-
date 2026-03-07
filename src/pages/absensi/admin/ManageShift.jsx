@@ -46,8 +46,8 @@ const ManageShift = () => {
   const { data: shiftData, isLoading: isShiftLoading } = useQuery({
     queryKey: ["shift-master"],
     queryFn: async () => {
-      const { data } = await API.get("/shifts/1");
-      return data;
+      const { data } = await API.get("/shifts");
+      return data && data.length > 0 ? data[0] : null;
     },
     staleTime: 5000,
   });
@@ -119,8 +119,8 @@ const ManageShift = () => {
 
     const basePayload = {
       user_ids: [selectedUserDetail.id],
-      shift_id: 1,
-      kantor_id: 1, 
+      shift_id: shiftData?.id || 1,
+      kantor_id: selectedUserDetail?.kantor_id || 1, 
     };
 
     try {
@@ -174,7 +174,8 @@ const ManageShift = () => {
       };
 
       const formattedDays = newDays.map((day) => indoToEng[day] || day);
-      return await API.put("/shifts/1", {
+      if (!shiftData?.id) throw new Error("ID Master Shift tidak ditemukan");
+      return await API.put(`/shifts/${shiftData.id}`, {
         hari_kerja: formattedDays,
       });
     },
@@ -422,7 +423,7 @@ const ManageShift = () => {
           </div>
           <div className="flex flex-wrap gap-2 items-center">
             {allMasterShifts
-              ?.filter((s) => s.id !== 1)
+              ?.filter((s) => s.id !== shiftData?.id)
               .map((s) => (
                 <div
                   key={s.id}
