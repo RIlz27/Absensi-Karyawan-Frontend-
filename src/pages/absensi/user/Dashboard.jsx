@@ -1,8 +1,144 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Icon } from "@iconify/react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import API from "@/store/api/AbsensiService";
 
 const UserDashboard = () => {
+  const navigate = useNavigate();
+  const [pengajuanLimit, setPengajuanLimit] = useState([]);
+  const [stats, setStats] = useState({ hadir: 0, tidakHadir: 0, sisaHari: 0, totalHari: 30 });
+  const [weeklyStatus, setWeeklyStatus] = useState([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [cutiRes, izinRes, historyRes] = await Promise.all([
+          API.get("/cuti"),
+          API.get("/izin"),
+          API.get("/history")
+        ]);
+        
+        // Format cuti
+        const cutiFormatted = cutiRes.data.map(item => {
+          const displayDate = new Date((item.status === 'Approved' || item.status === 'Rejected') && item.approved_at ? item.approved_at : item.created_at);
+          return {
+            title: `Cuti`,
+            status: item.status,
+            date: displayDate.toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" }),
+            time: displayDate.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }).replace(":", "."),
+            timestamp: displayDate.getTime(),
+            outerColor: "bg-rose-100 dark:bg-rose-500/20",
+            innerColor: "bg-rose-500",
+          };
+        });
+
+        // Format izin
+        const izinFormatted = izinRes.data.map(item => {
+          const displayDate = new Date((item.status === 'Approved' || item.status === 'Rejected') && item.approved_at ? item.approved_at : item.created_at);
+          return {
+            title: "Izin",
+            status: item.status,
+            date: displayDate.toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" }),
+            time: displayDate.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }).replace(":", "."),
+            timestamp: displayDate.getTime(),
+            outerColor: "bg-indigo-100 dark:bg-indigo-500/20",
+            innerColor: "bg-indigo-500",
+          };
+        });
+
+        const combined = [...cutiFormatted, ...izinFormatted]
+          .sort((a, b) => b.timestamp - a.timestamp)
+          .slice(0, 3);
+          
+        setPengajuanLimit(combined);
+
+        // Compute Monthly Stats
+        const hadirCount = historyRes.data.length; // assumes Absensi history only returns current month and 1 per day max
+        
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth();
+        const date = now.getDate();
+        const totalDaysInMonth = new Date(year, month + 1, 0).getDate();
+        
+        const sisaHari = totalDaysInMonth - date;
+        const tidakHadir = date - hadirCount; 
+
+        setStats({
+          hadir: hadirCount,
+          tidakHadir: tidakHadir < 0 ? 0 : tidakHadir,
+          sisaHari: sisaHari < 0 ? 0 : sisaHari,
+          totalHari: totalDaysInMonth
+        });
+
+        // Compute Weekly Status
+        const meRes = await API.get("/me");
+        const userShifts = meRes.data.shifts || [];
+        // Extract working days in English
+        const workingDaysEn = userShifts.map(s => s.pivot.hari);
+
+        // Map English days to Indonesian for display
+        const dayMap = {
+          "Monday": "Sen",
+          "Tuesday": "Sel",
+          "Wednesday": "Rab",
+          "Thursday": "Kam",
+          "Friday": "Jum",
+          "Saturday": "Sab",
+          "Sunday": "Min"
+        };
+
+        const today = new Date();
+        const currentDayIndex = today.getDay(); // 0 is Sunday, 1 is Monday
+        // Get start of the current week (Monday)
+        const startOfWeekDate = new Date(today);
+        startOfWeekDate.setDate(today.getDate() - (currentDayIndex === 0 ? 6 : currentDayIndex - 1));
+        
+        const weekStatusArr = [];
+        
+        // Loop through 7 days of the week sequentially
+        const englishDaysOrdered = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+        
+        englishDaysOrdered.forEach((enDay, index) => {
+           // Skip if not a working day
+           if (!workingDaysEn.includes(enDay)) return;
+           
+           // Calculate the exact date for this day of the current week
+           const loopDate = new Date(startOfWeekDate);
+           loopDate.setDate(startOfWeekDate.getDate() + index);
+           
+           const yyyy = loopDate.getFullYear();
+           const mm = String(loopDate.getMonth() + 1).padStart(2, '0');
+           const dd = String(loopDate.getDate()).padStart(2, '0');
+           const formattedLoopDate = `${yyyy}-${mm}-${dd}`;
+           
+           // Check history for this date
+           const hasAttended = historyRes.data.some(h => h.tanggal === formattedLoopDate);
+           
+           // If loopDate is in the future, it's pending (grey circle)
+           loopDate.setHours(23, 59, 59, 999);
+           
+           let statusType = "pending";
+           if (hasAttended) {
+               statusType = "hadir";
+           } else if (loopDate < new Date()) {
+               statusType = "absen"; // strictly in the past and no attendance record
+           }
+
+           weekStatusArr.push({
+               dayName: dayMap[enDay],
+               status: statusType
+           });
+        });
+
+        setWeeklyStatus(weekStatusArr);
+      } catch (err) {
+        console.error("Failed to fetch pengajuan history:", err);
+      }
+    };
+    fetchData();
+  }, []);
+
   const now = new Date();
   const tanggal = now.getDate();
   const hari = now.toLocaleDateString("id-ID", { weekday: "long" });
@@ -40,142 +176,139 @@ const UserDashboard = () => {
             <p className="text-[10px] text-slate-400 uppercase font-bold tracking-widest mb-4">
               Status minggu ini
             </p>
-            <div className="flex justify-between">
-              {["Sen", "Sel", "Rab", "Kam", "Jum"].map((day, i) => (
-                <div key={i} className="flex flex-col items-center gap-2">
-                  <p className="text-[10px] font-bold text-slate-400">{day}</p>
+            <div className="flex justify-between overflow-x-auto gap-4 scrollbar-hide py-1">
+              {weeklyStatus.length > 0 ? weeklyStatus.map((item, i) => (
+                <div key={i} className="flex flex-col items-center gap-2 min-w-[32px]">
+                  <p className="text-[10px] font-bold text-slate-400">{item.dayName}</p>
                   <Icon
                     icon={
-                      i === 1
+                      item.status === "absen"
                         ? "ph:x-circle-fill"
-                        : i === 4
+                        : item.status === "pending"
                           ? "ph:circle"
                           : "ph:check-circle-fill"
                     }
                     className={
-                      i === 1
+                      item.status === "absen"
                         ? "text-red-500"
-                        : i === 4
+                        : item.status === "pending"
                           ? "text-slate-200 dark:text-slate-700"
-                          : "text-indigo-500"
+                          : "text-indigo-500 delay-100 animate-fade-in"
                     }
                     width="24"
                   />
                 </div>
-              ))}
+              )) : (
+                 <p className="text-xs text-slate-400 italic">Memuat jadwal mingguan...</p>
+              )}
             </div>
           </div>
         </div>
 
         {/* Stats Section */}
-        <div className="mt-6 grid grid-cols-3 gap-3">
-          {[
-            { label: "Hadir", val: 24, color: "text-indigo-600" },
-            { label: "Absen", val: 5, color: "text-purple-600" },
-            { label: "Izin", val: 1, color: "text-slate-400" },
-          ].map((stat, i) => (
-            <div
-              key={i}
-              className="bg-white dark:bg-slate-800 p-4 rounded-3xl shadow-xl shadow-indigo-900/10 text-center border border-slate-100 dark:border-slate-700"
-            >
-              <div className="relative inline-flex items-center justify-center mb-2">
-                <svg className="w-12 h-12 transform -rotate-90">
-                  <circle
-                    cx="24"
-                    cy="24"
-                    r="20"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                    fill="transparent"
-                    className="text-slate-100 dark:text-slate-700"
-                  />
-                  <circle
-                    cx="24"
-                    cy="24"
-                    r="20"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                    fill="transparent"
-                    strokeDasharray="125.6"
-                    strokeDashoffset={125.6 - (stat.val / 30) * 125.6}
-                    className={stat.color}
-                  />
-                </svg>
-                <span className="absolute text-xs font-bold dark:text-white">
-                  {stat.val}
-                </span>
+        <div className="mt-8">
+          <div className="flex justify-between items-center mb-4 px-1">
+            <h4 className="font-bold text-slate-800 dark:text-white text-base tracking-wide flex items-center gap-2">
+              <Icon icon="ph:chart-polar-fill" className="text-indigo-500" width="20" />
+              Statistik <span className="text-indigo-600 dark:text-indigo-400 font-extrabold">{bulanTahun.split(" ")[0]}</span>
+            </h4>
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { label: "Hadir", val: stats.hadir, color: "text-indigo-600" },
+              { label: "Tidak Hadir", val: stats.tidakHadir, color: "text-purple-600" },
+              { label: "Sisa Hari", val: stats.sisaHari, color: "text-slate-400" },
+            ].map((stat, i) => (
+              <div
+                key={i}
+                className="bg-white dark:bg-slate-800 p-4 rounded-3xl shadow-xl shadow-indigo-900/10 text-center border border-slate-100 dark:border-slate-700"
+              >
+                <div className="relative inline-flex items-center justify-center mb-2">
+                  <svg className="w-12 h-12 transform -rotate-90">
+                    <circle
+                      cx="24"
+                      cy="24"
+                      r="20"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                      fill="transparent"
+                      className="text-slate-100 dark:text-slate-700"
+                    />
+                    <circle
+                      cx="24"
+                      cy="24"
+                      r="20"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                      fill="transparent"
+                      strokeDasharray="125.6"
+                      strokeDashoffset={125.6 - (Math.min(stat.val, stats.totalHari) / stats.totalHari) * 125.6}
+                      className={stat.color}
+                    />
+                  </svg>
+                  <span className="absolute text-xs font-bold dark:text-white">
+                    {stat.val}
+                  </span>
+                </div>
+                <p className="text-[9px] text-slate-500 font-bold uppercase tracking-tighter">
+                  {stat.label}
+                </p>
               </div>
-              <p className="text-[9px] text-slate-500 font-bold uppercase tracking-tighter">
-                {stat.label}
-              </p>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
         {/* Pengajuan Section */}
-        <div className="bg-white dark:bg-slate-800 rounded-[32px] p-6 shadow-xl shadow-indigo-900/10 border border-white/10 mt-8" >
-          <div className="flex justify-between items-center mb-4 px-1 ">
-            <h4 className="font-extrabold text-slate-800 dark:text-white text-sm uppercase tracking-wider">
+        <div className="bg-white dark:bg-slate-800 rounded-[32px] p-6 shadow-xl shadow-indigo-900/10 border border-slate-100 dark:border-slate-800 mt-8" >
+          <div className="flex justify-between items-center mb-6 px-1 ">
+            <h4 className="font-bold text-slate-800 dark:text-white text-lg tracking-wide">
               Pengajuan
             </h4>
-            <button className="text-indigo-600 text-xs font-bold px-2 py-1 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg">
+            <button 
+              onClick={() => navigate("/user/pengajuan")}
+              className="text-indigo-600 dark:text-indigo-400 text-sm font-medium hover:underline">
               Lihat Semua
             </button>
           </div>
 
           <div className="space-y-3">
-            {[
-              {
-                title: "Lembur",
-                status: "Tertunda",
-                date: "29 Jan 2026",
-                color: "bg-slate-200",
-              },
-              {
-                title: "Izin",
-                status: "Disetujui",
-                date: "27 Jan 2026",
-                color: "bg-indigo-500",
-              },
-              {
-                title: "Cuti",
-                status: "Ditolak",
-                date: "20 Jan 2026",
-                color: "bg-red-500",
-              },
-            ].map((item, i) => (
+            {pengajuanLimit.length > 0 ? pengajuanLimit.map((item, i) => (
               <div
                 key={i}
-                className="bg-white dark:bg-[#0f172a] p-4 rounded-[24px] flex items-center justify-between shadow-sm border border-slate-50 dark:border-slate-700 active:scale-95 transition-all"
+                className="bg-slate-50 dark:bg-[#0f172a] p-4 rounded-[24px] flex items-center justify-between active:scale-95 transition-all"
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-4">
                   <div
-                    className={`h-10 w-10 rounded-2xl ${item.color} flex items-center justify-center text-white shadow-inner`}
+                    className={`h-11 w-11 rounded-full ${item.outerColor} flex items-center justify-center`}
                   >
-                    <Icon icon="ph:paper-plane-tilt-bold" width="20" />
+                    <div className={`h-4 w-4 rounded-full ${item.innerColor}`}></div>
                   </div>
                   <div>
-                    <h4 className="font-bold text-sm dark:text-white">
+                    <h4 className="font-bold text-sm text-slate-800 dark:text-white mb-0.5">
                       {item.title}
                     </h4>
-                    <p className="text-[10px] text-slate-400 font-medium">
-                      {item.status}
+                    <p className="text-[11px] font-medium text-slate-500">
+                      {item.status === 'Approved' ? 'Disetujui' : item.status === 'Rejected' ? 'Ditolak' : 'Tertunda'}
                     </p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="font-bold text-[10px] dark:text-slate-300">
+                  <p className="font-bold text-[11px] text-slate-800 dark:text-white mb-1">
                     {item.date}
                   </p>
-                  <p className="text-[9px] text-slate-400 mt-0.5">15:55</p>
+                  <p className="text-[10px] text-slate-500">{item.time || "--:--"}</p>
                 </div>
               </div>
-            ))}
+            )) : (
+              <div className="text-center text-slate-500 text-xs py-4">
+                 Belum ada pengajuan.
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      <div className="fixed bottom-13 left-1/2 -translate-x-1/2 z-50">
+      <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50">
         <Link
           to="/user/scanner"
           className="h-16 w-16 bg-indigo-600 rounded-full flex items-center justify-center text-white shadow-2xl shadow-indigo-400">

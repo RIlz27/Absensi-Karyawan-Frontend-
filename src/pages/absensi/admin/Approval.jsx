@@ -1,15 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Icon } from "@iconify/react";
-import axios from "axios";
-
-const token = localStorage.getItem("token"); // Asumsi token disimpan di "token"
-
-const authAxios = axios.create({
-  baseURL: "http://localhost:8000/api",
-  headers: {
-    Authorization: `Bearer ${token}`,
-  },
-});
+import API from "@/store/api/AbsensiService";
 
 const AdminApprovalPage = () => {
   const [activeTab, setActiveTab] = useState("cuti"); // 'cuti' or 'izin'
@@ -17,7 +8,7 @@ const AdminApprovalPage = () => {
 
   const fetchRequests = async () => {
     try {
-      const res = await authAxios.get(`/${activeTab}`);
+      const res = await API.get(`/${activeTab}`);
       setRequests(res.data);
     } catch (err) {
       console.error(err);
@@ -32,7 +23,7 @@ const AdminApprovalPage = () => {
     if (!window.confirm(`Apakah Anda yakin ingin ${status === 'Approved' ? 'Menyetujui' : 'Menolak'} pengajuan ini?`)) return;
     
     try {
-      await authAxios.patch(`/${activeTab}/${id}/status`, { status });
+      await API.patch(`/${activeTab}/${id}/status`, { status });
       alert(`Status pengajuan berhasil diubah menjadi ${status}`);
       fetchRequests();
     } catch (err) {

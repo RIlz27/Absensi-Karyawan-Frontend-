@@ -14,6 +14,7 @@ const Register2 = lazy(() => import("./pages/auth/register2"));
 const ForgotPass = lazy(() => import("./pages/auth/forgot-password"));
 const ForgotPass2 = lazy(() => import("./pages/auth/forgot-password2"));
 const Error = lazy(() => import("./pages/404"));
+const SetupWizard = lazy(() => import("./pages/absensi/SetupWizard.jsx"));
 
 // components and elements pages
 const Button = lazy(() => import("./pages/elements/button"));
@@ -71,7 +72,7 @@ const PricingPage = lazy(() => import("./pages/utility/pricing"));
 const BlankPage = lazy(() => import("./pages/utility/blank-page"));
 
 const FaqPage = lazy(() => import("./pages/utility/faq"));
-const Profile = lazy(() => import("./pages/utility/profile"));
+const Profile = lazy(() => import("./pages/absensi/user/Profile.jsx"));
 const IconPage = lazy(() => import("./pages/icons"));
 const NotificationPage = lazy(() => import("./pages/utility/notifications"));
 
@@ -110,6 +111,16 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPass />} />
           <Route path="/forgot-password2" element={<ForgotPass2 />} />
         </Route>
+
+        {/* STANDALONE: Initial Setup Wizard (no Layout) */}
+        <Route
+          path="/setup"
+          element={
+            <Suspense fallback={<Loading />}>
+              <SetupWizard />
+            </Suspense>
+          }
+        />
 
         <Route path="/*" element={<Layout />}>
           <Route path="dashboard" element={<Dashboard />} />
@@ -180,6 +191,7 @@ function App() {
           <Route path="admin/approval" element={<Approval />} />
           <Route path="user/dashboard" element={<UserDashboard />} />
           <Route path="user/pengajuan" element={<Pengajuan />} />
+          <Route path="user/profile" element={<Profile />} />
         </Route>
         <Route
           path="/404"

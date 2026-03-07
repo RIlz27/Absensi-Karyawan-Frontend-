@@ -9,6 +9,14 @@ import { logOut } from "@/store/api/auth/authSlice";
 import clsx from "clsx";
 import UserAvatar from "@/assets/images/avatar/avatar.jpg";
 
+// Helper to get full avatar URL
+const getAvatarUrl = (path) => {
+  if (!path) return UserAvatar;
+  if (path.startsWith('http')) return path;
+  const baseUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || "http://localhost:8000";
+  return `${baseUrl}/storage/${path}`;
+};
+
 const ProfileLabel = ({ sticky, user }) => {
   return (
     <div className="flex items-center">
@@ -19,8 +27,8 @@ const ProfileLabel = ({ sticky, user }) => {
         })}
       >
         <img
-          src={UserAvatar}
-          alt=""
+          src={getAvatarUrl(user?.avatar)}
+          alt="Profile"
           className="block w-full h-full object-cover rounded-full ring-1 ring-indigo-700 ring-offset-4 dark:ring-offset-gray-700"
         />
       </div>
@@ -46,7 +54,7 @@ const Profile = ({ sticky }) => {
       label: "Profile",
       icon: "ph:user-circle-light",
       status: "green",
-      action: () => navigate("/profile"),
+      action: () => navigate("/user/profile"),
     },
     {
       label: "Settings",
@@ -77,8 +85,8 @@ const Profile = ({ sticky }) => {
         <div className="flex-none ltr:mr-[10px] rtl:ml-[10px]">
           <div className="h-[46px] w-[46px] rounded-full">
             <img
-              src={UserAvatar}
-              alt=""
+              src={getAvatarUrl(user?.avatar)}
+              alt="Profile"
               className="block w-full h-full object-cover rounded-full"
             />
           </div>

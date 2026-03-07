@@ -1,17 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Icon } from "@iconify/react";
-import axios from "axios";
-
-// PENTING: import instance axios yang sudah diset untuk include token atau buat manual
-// Sebagai contoh, fetch manual dengan token dari localStorage
-const token = localStorage.getItem("token"); // Asumsi token disimpan di "token"
-
-const authAxios = axios.create({
-  baseURL: "http://localhost:8000/api",
-  headers: {
-    Authorization: `Bearer ${token}`,
-  },
-});
+import API from "@/store/api/AbsensiService";
 
 const UserPengajuanPage = () => {
   const [activeTab, setActiveTab] = useState("cuti"); // 'cuti' or 'izin'
@@ -30,7 +19,7 @@ const UserPengajuanPage = () => {
 
   const fetchHistory = async () => {
     try {
-      const res = await authAxios.get(`/${activeTab}`);
+      const res = await API.get(`/${activeTab}`);
       setHistory(res.data);
     } catch (err) {
       console.error(err);
@@ -45,14 +34,14 @@ const UserPengajuanPage = () => {
     e.preventDefault();
     try {
       if (activeTab === "cuti") {
-        await authAxios.post("/cuti", {
+        await API.post("/cuti", {
           jenis: formData.jenis,
           tanggal_mulai: formData.tanggal_mulai,
           tanggal_selesai: formData.tanggal_selesai,
           alasan: formData.alasan,
         });
       } else {
-        await authAxios.post("/izin", {
+        await API.post("/izin", {
           tanggal: formData.tanggal,
           jam_mulai: formData.jam_mulai + ":00", // pad seconds for backend
           jam_selesai: formData.jam_selesai + ":00",
