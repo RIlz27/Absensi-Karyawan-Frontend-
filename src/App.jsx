@@ -108,22 +108,25 @@ function App() {
   useEffect(() => {
     const checkSetup = async () => {
       try {
+        const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000/api";
         const response = await axios.get(
-          `${import.meta.env.VITE_API_BASE_URL}/initial-setup/check`, // <--- Sesuaikan path-nya
+          `${API_BASE}/initial-setup/check`, // <--- Sesuaikan path-nya
           {
             headers: { "ngrok-skip-browser-warning": "69420" },
           },
         );
 
-        // Jika SetupController balikkan { is_setup: false }
-        if (response.data.is_setup === false) {
+        // Jika SetupController balikkan { setup_done: false }
+        if (response.data.setup_done === false) {
           setIsConfigured(false);
-          navigate("/setup");
+          navigate("/setup", { replace: true });
         } else {
           setIsConfigured(true);
         }
       } catch (error) {
-        console.error("Koneksi Ngrok Gagal", error);
+        console.error("Koneksi Error:", error);
+        // Fallback or handle error appropriately. Currently just loading login.
+        setIsConfigured(true);
       }
     };
 
