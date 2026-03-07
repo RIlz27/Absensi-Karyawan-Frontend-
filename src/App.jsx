@@ -1,5 +1,5 @@
-import React, { lazy, Suspense } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import React, { lazy, Suspense, useState, useEffect } from "react";
+import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 
 // home pages  & dashboard
 //import Dashboard from "./pages/dashboard";
@@ -99,12 +99,16 @@ const Approval = lazy(() => import("./pages/absensi/admin/Approval.jsx"));
 import Layout from "./layout/Layout";
 import Loading from "@/components/Loading";
 import AuthLayout from "./layout/AuthLayout";
+
+// ------- Setup check is now handled in AuthLayout -------
+
 function App() {
   return (
     <main className="App  relative">
       <Routes>
         <Route path="/" element={<AuthLayout />}>
-          <Route path="/" element={<Login />} />
+          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="/login" element={<Login />} />
           <Route path="/login2" element={<Login2 />} />
           <Route path="/register" element={<Register />} />
           <Route path="/register2" element={<Register2 />} />
@@ -112,7 +116,6 @@ function App() {
           <Route path="/forgot-password2" element={<ForgotPass2 />} />
         </Route>
 
-        {/* STANDALONE: Initial Setup Wizard (no Layout) */}
         <Route
           path="/setup"
           element={
