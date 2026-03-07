@@ -19,7 +19,7 @@ const schema = yup
     nip: yup
       .string()
       .required("NIP wajib diisi")
-      .min(5, "NIP minimal 5 karakter"), // Sesuaikan panjang NIP lo
+      .min(3, "NIP minimal 5 karakter"), // Sesuaikan panjang NIP lo
     password: yup.string().required("Password wajib diisi"),
   })
   .required();
