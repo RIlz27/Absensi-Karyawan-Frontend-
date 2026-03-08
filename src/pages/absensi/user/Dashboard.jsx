@@ -211,8 +211,6 @@ const UserDashboard = () => {
             </div>
           </div>
         </div>
-
-        // Stats Section 
         <div className="mt-8">
           <div className="flex justify-between items-center mb-4 px-1">
             <h4 className="font-bold text-slate-800 dark:text-white text-base tracking-wide flex items-center gap-2">

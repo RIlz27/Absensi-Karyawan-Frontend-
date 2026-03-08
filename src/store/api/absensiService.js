@@ -45,6 +45,7 @@ export const deleteKantor = async (id) => (await API.delete(`/kantor/${id}`)).da
 // ABSENSI & QR
 export const generateQr = async (payload) => (await API.post("/generate-qr", payload)).data;
 export const scanQr = async (payload) => (await API.post("/scan", payload)).data;
+export const scanSelfie = async (payload) => (await API.post("/scan-selfie", payload)).data;
 
 // USER
 export const getUsers = async () => (await API.get("/users")).data;
