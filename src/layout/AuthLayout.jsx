@@ -15,6 +15,21 @@ const AuthLayout = () => {
         if (!data.setup_done) {
           navigate("/setup", { replace: true });
         } else {
+          // Guard: if user hits back button to /login while already authenticated
+          const token = localStorage.getItem("token");
+          const userStr = localStorage.getItem("user");
+          if (token && userStr) {
+             try {
+                const user = JSON.parse(userStr);
+                if (user.role === "admin") {
+                   navigate("/dashboard", { replace: true });
+                } else {
+                   navigate("/user/dashboard", { replace: true });
+                }
+             } catch (e) {
+                // Ignore parse errors, just show login
+             }
+          }
           setChecking(false);
         }
       })

@@ -2,9 +2,13 @@ import React, { useState, useEffect } from "react";
 import { Icon } from "@iconify/react";
 import { Link, useNavigate } from "react-router-dom";
 import API from "@/store/api/absensiService.js";
+import { useGetPengumumanUserQuery } from "@/store/api/pengumuman/pengumumanApiSlice";
 
 const UserDashboard = () => {
   const navigate = useNavigate();
+  const { data: pengumumans } = useGetPengumumanUserQuery();
+
+  // ... (keep state and useEffect the same)
   const [pengajuanLimit, setPengajuanLimit] = useState([]);
   const [stats, setStats] = useState({ hadir: 0, tidakHadir: 0, sisaHari: 0, totalHari: 30 });
   const [weeklyStatus, setWeeklyStatus] = useState([]);
@@ -154,10 +158,52 @@ const UserDashboard = () => {
     year: "numeric",
   });
 
+  const featuredPengumuman = pengumumans && pengumumans.length > 0 ? pengumumans[0] : null;
+
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0f172a] pb-24">
-      <div className="bg-gradient-to-b from-indigo-600 to-purple-600 h-48 -mx-5 rounded-b-[100px] overflow-hidden absolute inset-x-0 top-0"></div>
-      <div className="px-5 relative z-10">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0f172a] pb-24 relative overflow-x-hidden">
+      {/* Background Header */}
+      <div className="bg-gradient-to-b from-indigo-600 to-purple-600 h-[280px] -mx-5 rounded-b-[100px] overflow-hidden absolute inset-x-0 top-0 pointer-events-none">
+        <div className="absolute inset-0 bg-[url('@/assets/images/all-img/bg-line.png')] opacity-20 bg-cover bg-center"></div>
+      </div>
+      
+      <div className="px-5 relative z-10 pt-6">
+        {/* HERO SECTION: Zera Bulletin Board */}
+        {featuredPengumuman && (
+          <div className="mb-6 relative overflow-hidden rounded-[24px] shadow-2xl shadow-indigo-900/20 w-full animate-fade-in-up">
+            {/* Dynamic Background based on category */}
+            <div className={`absolute inset-0 opacity-90 backdrop-blur-md ${
+              featuredPengumuman.category === 'Urgent' 
+                ? 'bg-gradient-to-br from-red-500 to-rose-600' 
+                : featuredPengumuman.category === 'Event'
+                  ? 'bg-gradient-to-br from-indigo-500 to-violet-600'
+                  : 'bg-gradient-to-br from-slate-800 to-slate-900 dark:from-slate-800 dark:to-[#0f172a]'
+            }`}></div>
+            
+            <div className="relative p-6 text-white z-10">
+              <div className="flex justify-between items-start mb-3">
+                <span className={`px-3 py-1 text-[10px] font-bold uppercase tracking-widest rounded-full flex items-center gap-1 bg-white/20 backdrop-blur-sm border border-white/10`}>
+                  <Icon icon={featuredPengumuman.category === 'Urgent' ? 'ph:warning-circle-bold' : featuredPengumuman.category === 'Event' ? 'ph:calendar-star-bold' : 'ph:info-bold'} />
+                  {featuredPengumuman.category}
+                </span>
+                <span className="text-[10px] text-white/70 font-medium">
+                   {new Date(featuredPengumuman.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                </span>
+              </div>
+              <h3 className="text-lg font-bold leading-tight mb-2 drop-shadow-md">
+                {featuredPengumuman.title}
+              </h3>
+              <p className="text-xs text-white/80 line-clamp-2 leading-relaxed font-medium">
+                {featuredPengumuman.content}
+              </p>
+            </div>
+            
+            {/* Decorative Element */}
+            <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
+          </div>
+        )}
+
+        {/* Dashboard Main Card (Tanggal) */}
         <div className="bg-white dark:bg-slate-800 rounded-[32px] p-6 shadow-xl shadow-indigo-900/10 border border-white/10">
           <div className="flex justify-between items-start">
             <div className="flex items-center gap-3">

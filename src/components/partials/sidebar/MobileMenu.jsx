@@ -8,6 +8,7 @@ import useDarkMode from "@/hooks/useDarkMode";
 import { Link } from "react-router-dom";
 import useMobileMenu from "@/hooks/useMobileMenu";
 import Icon from "@/components/ui/Icon";
+import { useSelector } from "react-redux";
 
 // import images
 import MobileLogo from "@/assets/images/logo/logo-c.svg";
@@ -30,13 +31,16 @@ const MobileMenu = ({ className = "custom-class" }) => {
   const [isSemiDark] = useSemiDark();
   const [isDark] = useDarkMode();
   const [mobileMenu, setMobileMenu] = useMobileMenu();
+  const auth = useSelector((state) => state.auth);
+  const dashboardLink = auth?.user?.role === "admin" ? "/dashboard" : "/user/dashboard";
+
   return (
     <div className={isSemiDark ? "dark" : ""}>
       <div
         className={`${className} fixed  top-0 bg-white dark:bg-gray-800 shadow-lg  h-full   w-[280px]`}
       >
         <div className="logo-segment flex justify-between items-center bg-white dark:bg-gray-800 z-[9] h-[85px]  px-4 ">
-          <Link to="/dashboard">
+          <Link to={dashboardLink}>
             <div className="flex items-center space-x-4">
               <div className="logo-icon">
                 {!isDark && !isSemiDark ? (

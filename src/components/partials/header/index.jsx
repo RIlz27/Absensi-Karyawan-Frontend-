@@ -93,8 +93,9 @@ const Header = ({ className = "custom-class", title }) => {
             <Notification />
             <Profile sticky={sticky} />
 
+            {/* Mobile Menu Toggle (Removed/Hidden since we use BottomNav now) */}
             <div
-              className="cursor-pointer text-gray-900 dark:text-white text-2xl xl:hidden  block"
+              className="cursor-pointer text-gray-900 dark:text-white text-2xl xl:hidden hidden"
               onClick={handleOpenMobileMenu}
             >
               <Icon icon="heroicons-outline:menu-alt-3" />

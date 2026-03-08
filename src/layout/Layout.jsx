@@ -9,6 +9,7 @@ import useMenulayout from "@/hooks/useMenulayout";
 import useMenuHidden from "@/hooks/useMenuHidden";
 import Footer from "@/components/partials/footer";
 import MobileMenu from "../components/partials/sidebar/MobileMenu";
+import BottomNav from "@/components/partials/sidebar/BottomNav";
 import useMobileMenu from "@/hooks/useMobileMenu";
 import MobileFooter from "@/components/partials/footer/MobileFooter";
 import { ToastContainer } from "react-toastify";
@@ -57,15 +58,18 @@ const Layout = () => {
           width < breakpoints.xl && mobileMenu
             ? "left-0 visible opacity-100  z-[9999]"
             : "left-[-300px] invisible opacity-0  z-[-999] "
-        }`}
+        } hidden`} // Force hide old mobile menu
       />
       {/* mobile menu overlay*/}
       {width < breakpoints.xl && mobileMenu && (
         <div
-          className="overlay bg-gray-900/50 backdrop-filter backdrop-blur-sm opacity-100 fixed inset-0 z-[999]"
+          className="overlay bg-gray-900/50 backdrop-filter backdrop-blur-sm opacity-100 fixed inset-0 z-[999] hidden"
           onClick={() => setMobileMenu(false)}
         ></div>
       )}
+
+      {/* NEW: Mobile Bottom Navigation */}
+      {width < breakpoints.xl && <BottomNav />}
 
       <div
         className={`content-wrapper transition-all duration-150 ${

@@ -88,6 +88,9 @@ const Scanner = lazy(() => import("./pages/absensi/user/Scanner.jsx"));
 const Kantor = lazy(() => import("./pages/absensi/admin/Kantor.jsx"));
 const UserList = lazy(() => import("./pages/absensi/UserList.jsx"));
 const ManageShift = lazy(() => import("./pages/absensi/admin/ManageShift.jsx"));
+const PengumumanAdmin = lazy(() => import("./pages/absensi/admin/pengumuman/PengumumanAdmin.jsx"));
+const LeaderboardAdmin = lazy(() => import("./pages/absensi/admin/Leaderboard.jsx"));
+const AdminCalendar = lazy(() => import("./pages/absensi/admin/calendar/AdminCalendar.jsx"));
 const AddUser = lazy(() => import("./pages/absensi/admin/AddUser.jsx"));
 const Laporan = lazy(() => import("./pages/absensi/admin/Laporan.jsx"));
 const UserDashboard = lazy(() => import("./pages/absensi/user/Dashboard.jsx"));
@@ -218,6 +221,9 @@ function App() {
           // Absensi routes
           <Route path="admin/kantor" element={<Kantor />} />
           <Route path="admin/generate-qr" element={<GenerateQR />} />
+          <Route path="admin/pengumuman" element={<PengumumanAdmin />} />
+          <Route path="admin/leaderboard" element={<LeaderboardAdmin />} />
+          <Route path="admin/calendar" element={<AdminCalendar />} />
           <Route path="user/scanner" element={<Scanner />} />
           <Route path="user/list" element={<UserList />} />
           <Route path="admin/manage-shift" element={<ManageShift />} />

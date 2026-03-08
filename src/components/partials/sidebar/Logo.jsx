@@ -9,11 +9,15 @@ import useSemiDark from "@/hooks/useSemiDark";
 import MobileLogo from "@/assets/images/logo/logo-c.svg";
 import MobileLogoWhite from "@/assets/images/logo/logo-c-white.svg";
 
+import { useSelector } from "react-redux";
+
 const SidebarLogo = ({ menuHover }) => {
   const [isDark] = useDarkMode();
   const [collapsed, setMenuCollapsed] = useSidebar();
   // semi dark
   const [isSemiDark] = useSemiDark();
+  const auth = useSelector((state) => state.auth);
+  const dashboardLink = auth?.user?.role === "admin" ? "/dashboard" : "/user/dashboard";
 
   return (
     <div
@@ -23,7 +27,7 @@ const SidebarLogo = ({ menuHover }) => {
       
       `}
     >
-      <Link to="/dashboard">
+      <Link to={dashboardLink}>
         <div className="flex items-center space-x-2 rtl:space-x-reverse">
           <div className="logo-icon h-[40px]">
             {!isDark && !isSemiDark ? (

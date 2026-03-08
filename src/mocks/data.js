@@ -19,6 +19,18 @@ export const menuItems = [
         childtitle: "Approval Admin",
         childlink: "admin/approval",
       },
+      {
+        childtitle: "Bulletin Board",
+        childlink: "admin/pengumuman",
+      },
+      {
+        childtitle: "Leaderboard",
+        childlink: "admin/leaderboard",
+      },
+      {
+        childtitle: "Monitoring Kalender",
+        childlink: "admin/calendar",
+      },
     ],
   },
 
