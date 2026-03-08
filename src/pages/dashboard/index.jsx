@@ -16,13 +16,11 @@ import RecentOrderTable from "@/components/partials/Table/order-table";
 const Dashboard = () => {
   const navigate = useNavigate();
 
-  // 1. Fetch data kantor untuk pengecekan logic QR
   const { data: kantors, isLoading: loadingKantor } = useQuery({
     queryKey: ["kantors"],
     queryFn: getKantors,
   });
 
-  // 2. Logic Smart Redirect QR
   const handleGenerateClick = () => {
     if (!kantors || kantors.length === 0) {
       toast.error("Belum ada kantor terdaftar!");
@@ -40,7 +38,6 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-6">
-      {/* SECTION 1: TOP STATS COUNTER */}
       <div className="grid xl:grid-cols-4 sm:grid-cols-2 grid-cols-1 gap-5">
         <Card>
           <div className="flex">
@@ -81,7 +78,6 @@ const Dashboard = () => {
         </Card>
       </div>
 
-      {/* SECTION 2: PANEL OPERASIONAL (ADMIN & USER) */}
       <div className="grid grid-cols-12 gap-5">
         {/* PANEL ADMIN (Span 8) */}
         <div className="xl:col-span-8 col-span-12">
@@ -89,7 +85,6 @@ const Dashboard = () => {
             title="Panel Operasional Admin"
             className="bg-slate-50 dark:bg-slate-800 h-full"
           >
-            {/* Grid Menu Admin - Dibuat responsif 1, 2, atau 3 kolom */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               
               {/* 1. MANAJEMEN KANTOR */}

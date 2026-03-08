@@ -27,7 +27,8 @@ const UserList = ({ users, onEdit, onDelete }) => {
                   <Badge
                     label={user.role}
                     className={
-                      user.role === "admin" ? "bg-danger-500" : "bg-primary-500"
+                      user.role === "admin" ? "bg-danger-500" :
+                      user.role === "manager" ? "bg-warning-500 text-white" : "bg-primary-500"
                     }
                   />
                 </td>

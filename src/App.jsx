@@ -95,11 +95,13 @@ const AddUser = lazy(() => import("./pages/absensi/admin/AddUser.jsx"));
 const Laporan = lazy(() => import("./pages/absensi/admin/Laporan.jsx"));
 const UserDashboard = lazy(() => import("./pages/absensi/user/Dashboard.jsx"));
 const Pengajuan = lazy(() => import("./pages/absensi/user/Pengajuan.jsx"));
+const Point = lazy(() => import("./pages/absensi/user/Point.jsx"));
 const Approval = lazy(() => import("./pages/absensi/admin/Approval.jsx"));
 
 // const CalenderPage = lazy(() => import("./pages/app/calender"));
 import Layout from "./layout/Layout";
 import Loading from "@/components/Loading";
+import GlobalLoader from "@/components/GlobalLoader";
 import AuthLayout from "./layout/AuthLayout";
 
 // ------- Setup check is now handled in AuthLayout -------
@@ -141,6 +143,7 @@ function App() {
 
   return (
     <main className="App  relative">
+      <GlobalLoader />
       <Routes>
         <Route path="/" element={<AuthLayout />}>
           <Route index element={<Navigate to="/login" replace />} />
@@ -233,6 +236,7 @@ function App() {
           <Route path="admin/approval" element={<Approval />} />
           <Route path="user/dashboard" element={<UserDashboard />} />
           <Route path="user/pengajuan" element={<Pengajuan />} />
+          <Route path="user/point" element={<Point />} />
           <Route path="user/profile" element={<Profile />} />
         </Route>
         <Route

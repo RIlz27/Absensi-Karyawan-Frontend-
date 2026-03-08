@@ -16,12 +16,12 @@ function Error() {
         <div className=" text-base font-normal mb-10">
           The page you are looking for does not exist. Please check the URL or
           navigate back to the{" "}
-          <Link to={!isAuth ? "/" : "/dashboard"}>Go to homepage</Link>
+          <Link to={!isAuth ? "/" : (user?.role === "karyawan" ? "/user/dashboard" : "/dashboard")}>Go to homepage</Link>
         </div>
       </div>
       <div className="max-w-[300px] mx-auto w-full">
         <Link
-          to={!isAuth ? "/" : "/dashboard"}
+          to={!isAuth ? "/" : (user?.role === "karyawan" ? "/user/dashboard" : "/dashboard")}
           className="btn  btn-primary light transition-all duration-150 block text-center"
         >
           Go to homepage

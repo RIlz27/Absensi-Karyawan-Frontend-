@@ -12,7 +12,6 @@ import SingleMenu from "./single-menu";
 const Navmenu = ({ menus }) => {
   const [activeSubmenu, setActiveSubmenu] = useState(null);
   
-  // Get current user role from redux
   const { user } = useSelector((state) => state.auth);
   const isAdmin = user?.role === 'admin';
 
@@ -44,7 +43,7 @@ const Navmenu = ({ menus }) => {
         }
       }
     });
-    document.title = `DashSpace  | ${locationName}`;
+    document.title = `Absensi Karyawan  | ${locationName}`;
 
     setActiveSubmenu(submenuIndex);
     if (mobileMenu) {
@@ -56,15 +55,11 @@ const Navmenu = ({ menus }) => {
     <>
       <ul>
         {menus.map((item, i) => {
-          // Filter children links to avoid ordinary users seeing admin routes
           let filteredChild = item.child;
           if (item.child && !isAdmin) {
              filteredChild = item.child.filter((c) => !c.childlink.includes("admin/"));
           }
-          
-          // If no children left and it's not a header, don't show parent
           if (item.child && (!filteredChild || filteredChild.length === 0)) return null;
-
           const renderItem = { ...item, child: filteredChild };
 
           return (
@@ -73,15 +68,11 @@ const Navmenu = ({ menus }) => {
             className={` single-menu-item 
               ${renderItem.child ? "item-has-children" : ""}
               ${activeSubmenu === i ? "open" : ""}
-              ${locationName === renderItem.link ? "menu-item-active" : ""}`}
-          >
-            {/* single menu with no childred*/}
+              ${locationName === renderItem.link ? "menu-item-active" : ""}`}>
             {!renderItem.child && !renderItem.isHeadr && <SingleMenu item={renderItem} />}
-            {/* only for menu-label */}
             {renderItem.isHeadr && !renderItem.child && (
               <div className="menu-label">{renderItem.title}</div>
             )}
-            {/*    !!sub menu parent   */}
             {renderItem.child && (
               <MenuItem
                 activeSubmenu={activeSubmenu}

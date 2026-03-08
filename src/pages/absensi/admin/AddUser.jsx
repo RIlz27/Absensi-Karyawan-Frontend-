@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getUsers, createUser, deleteUser, getKantors } from "@/store/api/absensiService.js";
+import { getUsers, createUser, deleteUser, updateUserRole, getKantors } from "@/store/api/absensiService.js";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import { toast } from "react-toastify";
@@ -67,6 +67,27 @@ const EmployeeManagement = () => {
       queryClient.invalidateQueries(["fetch-users"]);
     },
   });
+
+  const roleUpdateMutation = useMutation({
+    mutationFn: ({ id, role }) => updateUserRole(id, role),
+    onSuccess: (data) => {
+      toast.success(data.message || "Role berhasil diubah!");
+      queryClient.invalidateQueries(["fetch-users"]);
+      // Update selected user local state if necessary
+      if (selectedUser) {
+        setSelectedUser({ ...selectedUser, role: data.user?.role || selectedUser.role });
+      }
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || "Gagal mengubah role");
+    }
+  });
+
+  const handleRoleChange = (userId, newRole) => {
+    if (window.confirm("Apakah Anda yakin ingin mengubah role karyawan ini?")) {
+      roleUpdateMutation.mutate({ id: userId, role: newRole });
+    }
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -149,6 +170,8 @@ const EmployeeManagement = () => {
                     className={`text-[10px] px-2.5 py-1 rounded-lg font-bold uppercase tracking-tight ${
                       user.role === "admin"
                         ? "bg-rose-100 text-rose-600 dark:bg-rose-900/20 dark:text-rose-400"
+                        : user.role === "manager"
+                        ? "bg-amber-100 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400"
                         : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400"
                     }`}
                   >
@@ -204,6 +227,7 @@ const EmployeeManagement = () => {
                         }
                       >
                         <option value="karyawan">Karyawan</option>
+                        <option value="manager">Manager</option>
                         <option value="admin">Admin</option>
                       </select>
                     </div>
@@ -263,10 +287,26 @@ const EmployeeManagement = () => {
                           <Icon icon="ph:trash-bold" className="text-xl" />
                         )}
                       </button>
-                      <span className="h-1 w-1 bg-slate-300 rounded-full"></span>
-                      <span className="text-xs font-bold text-indigo-500 uppercase">
-                        {selectedUser.role}
-                      </span>
+                      <span className="h-1 w-1 bg-slate-300 rounded-full mx-1"></span>
+                      <select
+                        className={`text-xs font-bold uppercase tracking-wide rounded-lg px-2 py-1 outline-none cursor-pointer border-none appearance-none pr-6 bg-no-repeat bg-[url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-down-fill" viewBox="0 0 16 16"><path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/></svg>')] bg-[length:10px_10px] bg-[position:right_6px_center] ${
+                          selectedUser.role === "admin"
+                            ? "bg-rose-100 text-rose-600 dark:bg-rose-900/40 dark:text-rose-400"
+                            : selectedUser.role === "manager"
+                            ? "bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-400"
+                            : "bg-indigo-100 text-indigo-600 dark:bg-indigo-900/40 dark:text-indigo-400"
+                        }`}
+                        value={selectedUser.role}
+                        onChange={(e) => handleRoleChange(selectedUser.id, e.target.value)}
+                        disabled={roleUpdateMutation.isPending}
+                      >
+                        <option value="karyawan" className="text-slate-800 bg-white">KARYAWAN</option>
+                        <option value="manager" className="text-slate-800 bg-white">MANAGER</option>
+                        <option value="admin" className="text-slate-800 bg-white">ADMIN</option>
+                      </select>
+                      {roleUpdateMutation.isPending && (
+                        <Icon icon="line-md:loading-twotone-loop" className="animate-spin text-indigo-500" />
+                      )}
                     </div>
                   </div>
 

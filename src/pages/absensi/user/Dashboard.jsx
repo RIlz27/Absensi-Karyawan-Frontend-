@@ -213,7 +213,7 @@ const UserDashboard = () => {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0f172a] pb-24 relative overflow-x-hidden">
       <div className="bg-gradient-to-b from-indigo-600 to-purple-600 h-48 -mx-5 rounded-b-[100px] overflow-hidden absolute inset-x-0 top-0"></div>
-      <div className="px-5 relative z-10 pt-6">
+      <div className="px-5 relative z-10 pt-10">
         {featuredPengumuman && (
           <div className="mb-6 relative overflow-hidden rounded-[24px] shadow-2xl shadow-indigo-900/20 w-full animate-fade-in-up">
             <div
@@ -256,10 +256,13 @@ const UserDashboard = () => {
                 {featuredPengumuman.content}
               </p>
             </div>
+
+            {/* Decorative Element */}
             <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
           </div>
         )}
 
+        {/* Dashboard Main Card (Tanggal) */}
         <div className="bg-white dark:bg-slate-800 rounded-[32px] p-6 shadow-xl shadow-indigo-900/10 border border-white/10">
           <div className="flex justify-between items-start">
             <div className="flex items-center gap-3">
@@ -352,7 +355,7 @@ const UserDashboard = () => {
             ].map((stat, i) => (
               <div
                 key={i}
-                className="bg-white dark:bg-slate-800 p-4 rounded-3xl shadow-xl shadow-indigo-900/10 text-center border border-slate-100 dark:border-slate-700"
+                className="bg-white dark:bg-slate-800 p-4 rounded-3xl  shadow-xl shadow-indigo-900/10 text-center border border-slate-100 dark:border-slate-700"
               >
                 <div className="relative inline-flex items-center justify-center mb-2">
                   <svg className="w-12 h-12 transform -rotate-90">
@@ -496,15 +499,6 @@ const UserDashboard = () => {
             )}
           </div>
         </div>
-      </div>
-
-      <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50">
-        <Link
-          to="/user/scanner"
-          className="h-16 w-16 bg-indigo-600 rounded-full flex items-center justify-center text-white shadow-2xl shadow-indigo-400"
-        >
-          <Icon icon="ph:qr-code-bold" width="32" />
-        </Link>
       </div>
     </div>
   );

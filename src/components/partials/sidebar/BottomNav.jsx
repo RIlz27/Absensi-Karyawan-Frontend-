@@ -40,7 +40,7 @@ const BottomNav = () => {
 
   return (
     <div
-      className={`fixed bottom-0 left-0 w-full z-[9999] backdrop-blur-md pb-safe transition-colors duration-300 border-t ${
+      className={`fixed bottom-0 left-0 w-full z-[9999] backdrop-blur-md pb-[env(safe-area-inset-bottom)] transition-colors duration-300 border-t ${
         isDark 
         ? "bg-[#0b0f19]/80 border-gray-800" // Dark Mode: Deep Blue/Black translucent
         : "bg-[#F8F9FA]/90 border-[#E5E7EB]" // Light Mode: Sangat light smooth gray translucent & Soft border

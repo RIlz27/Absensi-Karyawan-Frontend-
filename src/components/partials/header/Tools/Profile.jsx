@@ -17,6 +17,13 @@ const getAvatarUrl = (path) => {
   return `${baseUrl}/storage/${path}`;
 };
 
+// Helper to get initials
+const getInitials = (name) => {
+  if (!name) return "U";
+  const parts = name.split(" ");
+  return parts.length > 1 ? parts[0][0] + parts[1][0] : parts[0][0];
+};
+
 const ProfileLabel = ({ sticky, user }) => {
   return (
     <div className="flex items-center">
@@ -26,11 +33,17 @@ const ProfileLabel = ({ sticky, user }) => {
           "lg:h-12 lg:w-12 h-7 w-7": !sticky,
         })}
       >
-        <img
-          src={getAvatarUrl(user?.avatar)}
-          alt="Profile"
-          className="block w-full h-full object-cover rounded-full ring-1 ring-indigo-700 ring-offset-4 dark:ring-offset-gray-700"
-        />
+        {user?.avatar ? (
+          <img
+            src={getAvatarUrl(user.avatar)}
+            alt="Profile"
+            className="block w-full h-full object-cover rounded-full ring-1 ring-indigo-700 ring-offset-4 dark:ring-offset-gray-700"
+          />
+        ) : (
+          <div className="flex w-full h-full items-center justify-center rounded-full bg-indigo-500 text-white font-bold text-sm ring-1 ring-indigo-700 ring-offset-4 dark:ring-offset-gray-700 uppercase">
+            {getInitials(user?.name)}
+          </div>
+        )}
       </div>
       {/* Opsional: Munculin nama kecil di sebelah avatar kalau gak sticky */}
       {!sticky && (
@@ -84,19 +97,23 @@ const Profile = ({ sticky }) => {
       <div className="flex items-center px-4 py-3 border-b border-gray-10 mb-3">
         <div className="flex-none ltr:mr-[10px] rtl:ml-[10px]">
           <div className="h-[46px] w-[46px] rounded-full">
-            <img
-              src={getAvatarUrl(user?.avatar)}
-              alt="Profile"
-              className="block w-full h-full object-cover rounded-full"
-            />
+            {user?.avatar ? (
+              <img
+                src={getAvatarUrl(user.avatar)}
+                alt="Profile"
+                className="block w-full h-full object-cover rounded-full"
+              />
+            ) : (
+              <div className="flex w-full h-full items-center justify-center rounded-full bg-indigo-500 text-white font-bold text-lg uppercase">
+                {getInitials(user?.name)}
+              </div>
+            )}
           </div>
         </div>
         <div className="flex-1 text-gray-700 dark:text-white text-sm font-semibold">
-          {/* 3. NAMA DINAMIS */}
           <span className="truncate w-full block capitalize">
             {user?.name || "User Name"}
           </span>
-          {/* 4. ROLE DINAMIS */}
           <span className="block font-light text-xs capitalize text-slate-400">
             {user?.role || "Role"}
           </span>

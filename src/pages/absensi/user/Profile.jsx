@@ -223,23 +223,21 @@ const UserProfile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0f172a] pb-24 relative">
-      <div className="bg-gradient-to-b from-indigo-600 to-purple-600 h-64 -mx-5 rounded-b-[64px] absolute inset-x-0 top-0 z-0"></div>
-
-      <div className="px-5 pt-10 relative z-10 max-w-2xl mx-auto">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0f172a] pb-24 relative overflow-x-hidden">
+     <div className="bg-gradient-to-b from-indigo-600 to-purple-600 h-48 -mx-3 rounded-b-[100px] overflow-hidden absolute inset-x-0 top-0"></div>
+      <div className="px-5 relative z-10 max-w-2xl mx-auto">
         <div className="text-center text-white mb-8">
-          <h2 className="text-2xl font-black mb-1">Profil Karyawan</h2>
-          <p className="text-indigo-100 text-sm font-medium">Kelola informasi data dirimu</p>
-        </div>
 
-        {/* Avatar Card */}
+        </div>
         <div className="bg-white dark:bg-slate-800 rounded-[32px] p-6 shadow-xl flex flex-col items-center mb-6">
           <div className="relative mb-4 group">
             <div className={`w-36 h-36 rounded-full border-4 border-white shadow-lg overflow-hidden bg-slate-100 flex items-center justify-center ${uploadingAvatar ? 'opacity-50' : ''}`}>
               {avatarPreview ? (
                 <img src={avatarPreview} alt="Avatar Preview" className="w-full h-full object-cover" />
               ) : (
-                <Icon icon="ph:user-circle-bold" className="text-6xl text-slate-400" />
+                <div className="flex w-full h-full items-center justify-center rounded-full bg-indigo-500 text-white font-bold text-5xl uppercase">
+                  {user?.name ? (user.name.split(" ").length > 1 ? user.name.split(" ")[0][0] + user.name.split(" ")[1][0] : user.name.split(" ")[0][0]) : "U"}
+                </div>
               )}
             </div>
             <label className="absolute bottom-1 right-1 h-11 w-11 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer transition-transform transform hover:scale-105 active:scale-95 border-2 border-white">

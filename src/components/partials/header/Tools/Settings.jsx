@@ -42,38 +42,28 @@ const Settings = () => {
           <SheetDescription>Customize & Preview in Real Time</SheetDescription>
         </SheetHeader>
         <div className=" space-y-4 pt-6">
-          {/* theme start */}
           <div>
             <Theme />
           </div>
-          {/* semi dark start */}
           <div>
             <Semidark />
           </div>
-          {/* hr start */}
           <div>
             <hr className="-mx-5 border-gray-200 dark:border-gray-700" />
           </div>
-          {/* switch start */}
-
           <div>
             <RtlSwicth />
           </div>
-          {/* hr start */}
           <div>
             <hr className="-mx-5 border-gray-200 dark:border-gray-700" />
           </div>
-          {/* content width start */}
           <div>
             <ContentWidth />
           </div>
-          {/* menu layout */}
           <div>{width >= breakpoints.xl && <Menulayout />}</div>
-          {/* menu close */}
           <div className="pt-4">
             <MenuClose />
           </div>
-          {/* menu hidden */}
           <div className="pt-2">
             <MenuHidden />
           </div>

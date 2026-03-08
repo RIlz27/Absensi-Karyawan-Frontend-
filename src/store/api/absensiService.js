@@ -1,4 +1,6 @@
 import axios from "axios";
+import store from "@/store";
+import { startLoading, stopLoading } from "./loadingSlice";
 
 const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000/api";
 
@@ -13,17 +15,25 @@ const API = axios.create({
 
 API.interceptors.request.use(
   (config) => {
+    store.dispatch(startLoading());
     const token = localStorage.getItem("token");
     if (token) config.headers.Authorization = `Bearer ${token}`;
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    store.dispatch(stopLoading());
+    return Promise.reject(error);
+  }
 );
 
 // Response Interceptor: Global Error Handler
 API.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    store.dispatch(stopLoading());
+    return response;
+  },
   (error) => {
+    store.dispatch(stopLoading());
     if (error.response?.status === 401) {
       localStorage.clear();
       if (!window.location.pathname.includes("/login")) window.location.href = "/login";
@@ -51,6 +61,7 @@ export const scanSelfie = async (payload) => (await API.post("/scan-selfie", pay
 export const getUsers = async () => (await API.get("/users")).data;
 export const createUser = async (data) => (await API.post("/users", data)).data;
 export const updateUser = async (id, data) => (await API.put(`/users/${id}`, data)).data;
+export const updateUserRole = async (id, role) => (await API.patch(`/users/${id}/role`, { role })).data;
 export const deleteUser = async (id) => (await API.delete(`/users/${id}`)).data;
 
 // USER SHIFTS

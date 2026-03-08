@@ -5,7 +5,7 @@ const themeConfig = {
   // layout
   layout: {
     isRTL: false,
-    darkMode: false,
+    darkMode: true,
     semiDarkMode: false,
     contentWidth: "full",
     type: "vertical",
