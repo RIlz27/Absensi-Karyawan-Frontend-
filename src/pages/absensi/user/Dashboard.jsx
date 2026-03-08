@@ -164,7 +164,7 @@ const UserDashboard = () => {
     <div className="min-h-screen bg-slate-50 dark:bg-[#0f172a] pb-24 relative overflow-x-hidden">
       {/* Background Header */}
       <div className="bg-gradient-to-b from-indigo-600 to-purple-600 h-[280px] -mx-5 rounded-b-[100px] overflow-hidden absolute inset-x-0 top-0 pointer-events-none">
-        <div className="absolute inset-0 bg-[url('@/assets/images/all-img/bg-line.png')] opacity-20 bg-cover bg-center"></div>
+        <div className="absolute inset-0 opacity-20 bg-cover bg-center"></div>
       </div>
       
       <div className="px-5 relative z-10 pt-6">
