@@ -18,7 +18,6 @@ const GenerateQR = () => {
   );
 
   const [qrToken, setQrToken] = useState(null);
-  const [activeType, setActiveType] = useState(null);
   const [timeLeft, setTimeLeft] = useState(30);
   const timerRef = useRef(null);
 
@@ -50,43 +49,36 @@ const GenerateQR = () => {
     },
     onError: (err) => {
       toast.error(err.response?.data?.message || "Gagal generate QR");
-      setActiveType(null);
     },
   });
 
-  const handleGenerate = useCallback(
-    (type) => {
-      if (!type || !selectedKantorId) return;
-      setActiveType(type);
-      // Kita langsung kirim payload ke mutate
-      mutate({
-        type: type,
-        kantor_id: selectedKantorId,
-      });
-    },
-    [mutate, selectedKantorId], // Dependency ini penting
-  );
+  const handleGenerate = useCallback(() => {
+    if (!selectedKantorId) return;
+    mutate({
+      type: "general", // Single QR Type
+      kantor_id: selectedKantorId,
+    });
+  }, [mutate, selectedKantorId]);
 
   // --- LOGIC BARU: Watcher Ganti Kantor ---
   useEffect(() => {
-    // Kalau kantor berubah dan posisi lagi nampilin QR, langsung refresh QR-nya
-    if (selectedKantorId && activeType) {
-      handleGenerate(activeType);
-    } else if (!selectedKantorId) {
-      // Kalau lagi gak milih kantor (pilih list), hapus token lama
+    // Langsung generate saat milih kantor
+    if (selectedKantorId) {
+      handleGenerate();
+    } else {
       setQrToken(null);
     }
-  }, [selectedKantorId]); // Trigger tiap kali ID kantor berubah
+  }, [selectedKantorId, handleGenerate]); 
 
   // Logic Timer Auto-Refresh
   useEffect(() => {
-    if (qrToken && activeType) {
+    if (qrToken) {
       if (timerRef.current) clearInterval(timerRef.current);
 
       timerRef.current = setInterval(() => {
         setTimeLeft((prev) => {
           if (prev <= 1) {
-            handleGenerate(activeType);
+            handleGenerate();
             return 30;
           }
           return prev - 1;
@@ -96,7 +88,7 @@ const GenerateQR = () => {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [qrToken, activeType, handleGenerate]);
+  }, [qrToken, handleGenerate]);
 
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
@@ -160,7 +152,7 @@ const GenerateQR = () => {
           <>
             <div className="text-center mb-6">
               <h4 className="text-slate-900 dark:text-white text-xl font-bold mb-1">
-                Pilih Tipe Absensi
+                Singgle QR Absensi
               </h4>
               <p className="text-slate-500 text-xs">
                 Kantor:{" "}
@@ -168,47 +160,6 @@ const GenerateQR = () => {
                   {kantors.find((k) => k.id == selectedKantorId)?.nama}
                 </span>
               </p>
-            </div>
-
-            {/* Pemilih Tipe - Compact */}
-            <div className="flex justify-center mb-6">
-              <div className="inline-flex p-1 bg-slate-100 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 shadow-inner">
-                <button
-                  type="button"
-                  onClick={() => handleGenerate("masuk")}
-                  disabled={isPending}
-                  className={`flex items-center gap-2 px-5 py-2 rounded-lg font-bold text-sm transition-all duration-200 ${
-                    activeType === "masuk"
-                      ? "bg-white dark:bg-slate-800 text-indigo-600 shadow-sm ring-1 ring-slate-200"
-                      : "text-slate-500 hover:text-slate-700 hover:bg-white/50"
-                  }`}
-                >
-                  <Icon
-                    icon="ph:sign-in-bold"
-                    className={`text-base ${activeType === "masuk" ? "text-indigo-600" : "text-slate-400"}`}
-                  />
-                  <span>Masuk</span>
-                </button>
-
-                <div className="w-[1px] h-4 bg-slate-200 self-center mx-1"></div>
-
-                <button
-                  type="button"
-                  onClick={() => handleGenerate("pulang")}
-                  disabled={isPending}
-                  className={`flex items-center gap-2 px-5 py-2 rounded-lg font-bold text-sm transition-all duration-200 ${
-                    activeType === "pulang"
-                      ? "bg-white dark:bg-slate-800 text-red-600 shadow-sm ring-1 ring-slate-200"
-                      : "text-slate-500 hover:text-slate-700 hover:bg-white/50"
-                  }`}
-                >
-                  <Icon
-                    icon="ph:sign-out-bold"
-                    className={`text-base ${activeType === "pulang" ? "text-red-600" : "text-slate-400"}`}
-                  />
-                  <span>Pulang</span>
-                </button>
-              </div>
             </div>
 
             {qrToken && (
@@ -244,14 +195,14 @@ const GenerateQR = () => {
                   <div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white dark:bg-gray-800 shadow-sm">
                     <span className="relative flex h-2 w-2">
                       <span
-                        className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${activeType === "masuk" ? "bg-indigo-400" : "bg-red-400"}`}
+                        className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 bg-indigo-400"
                       ></span>
                       <span
-                        className={`relative inline-flex rounded-full h-2 w-2 ${activeType === "masuk" ? "bg-indigo-600" : "bg-red-600"}`}
+                        className="relative inline-flex rounded-full h-2 w-2 bg-indigo-600"
                       ></span>
                     </span>
                     <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
-                      {activeType}
+                      SCAN ABSENSI
                     </span>
                   </div>
                 </div>
