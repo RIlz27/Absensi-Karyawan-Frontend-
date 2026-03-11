@@ -8,6 +8,10 @@ export const apiSlice = createApi({
     baseUrl: API_BASE,
     prepareHeaders: (headers) => {
       headers.set("ngrok-skip-browser-warning", "69420");
+      const token = localStorage.getItem("token");
+      if (token) {
+        headers.set("Authorization", `Bearer ${token}`);
+      }
       return headers;
     },
   }),

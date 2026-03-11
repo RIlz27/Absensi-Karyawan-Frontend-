@@ -39,6 +39,8 @@
     "dayjs": "^1.11.7",
     "framer-motion": "^10.12.6",
     "html5-qrcode": "^2.3.8",
+    "jspdf": "^4.2.0",
+    "jspdf-autotable": "^5.0.7",
     "leaflet": "^1.9.4",
     "localforage": "^1.10.0",
     "lucide-react": "^0.290.0",
@@ -78,6 +80,7 @@
     "tailwind-merge": "^2.0.0",
     "tailwindcss-animate": "^1.0.7",
     "uuidv4": "^6.2.13",
+    "xlsx": "^0.18.5",
     "yup": "^0.32.11"
   },
   "devDependencies": {

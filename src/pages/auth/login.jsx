@@ -45,32 +45,15 @@ const login = () => {
               </Link>
             </div>
             <div className=" text-2xl font-semibold text-gray-600 dark:text-gray-300 mb-1 mt-5">
-              Welcome Back
+              Selamat Datang
             </div>
             <div className=" text-gray-500 dark:text-gray-400 text-sm">
-              Please sign in to continue
+              Tolong Login Terlebih Dahulu
             </div>
           </div>
           <div className="p-6 auth-box">
             {/* Logic utama ada di dalam sini bro */}
             <LoginForm />
-            
-            <div className=" text-center text-sm mt-5 space-x-1 rtl:space-x-reverse mb-1   ">
-              <span> Don't have Account?</span>
-              <span>
-                <Link to="/register" className=" text-indigo-500">
-                  Create account
-                </Link>
-              </span>
-            </div>
-            <div className="relative border-b-gray-10 dark:border-gray-700  border-b pt-6">
-              <div className="absolute inline-block bg-white dark:bg-gray-800 text-gray-400 left-1/2 top-1/2 transform -translate-x-1/2 px-4 min-w-max text-sm  font-normal">
-                OR
-              </div>
-            </div>
-            <div className="mt-6">
-              <Social />
-            </div>
 
             {/* Tombol Restart Data / Hapus */}
             <div className="mt-6 border-t border-gray-200 dark:border-gray-700 pt-6">

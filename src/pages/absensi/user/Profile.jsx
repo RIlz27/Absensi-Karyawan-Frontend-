@@ -36,8 +36,6 @@ const UserProfile = () => {
   const [avatarBlob, setAvatarBlob] = useState(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
-
-  // Cropping State
   const [imgSrc, setImgSrc] = useState('');
   const [cropModalOpen, setCropModalOpen] = useState(false);
   const [crop, setCrop] = useState();
@@ -75,7 +73,7 @@ const UserProfile = () => {
       const reader = new FileReader();
       reader.addEventListener('load', () => {
         setImgSrc(reader.result?.toString() || '');
-        setCropModalOpen(true); // Open the modal once image is loaded in memory
+        setCropModalOpen(true); 
       });
       reader.readAsDataURL(file);
     }
@@ -89,14 +87,9 @@ const UserProfile = () => {
   const getCroppedImg = async () => {
     const image = imgRef.current;
     if (!image || !completedCrop) return;
-
-    // Batas maksimal ukuran foto profil (mencegah memory crash di HP)
     const MAX_DIMENSION = 512; 
-
     const scaleX = image.naturalWidth / image.width;
     const scaleY = image.naturalHeight / image.height;
-    
-    // Ukuran asli dari crop (bisa mencapai ribuan pixel di HP)
     const cropWidthOriginal = completedCrop.width * scaleX;
     const cropHeightOriginal = completedCrop.height * scaleY;
 
@@ -121,10 +114,10 @@ const UserProfile = () => {
     // Bersihkan canvas dan gambar area terpilih sambil menerapkan scale
     ctx.drawImage(
       image,
-      completedCrop.x * scaleX, // titik X di gambar asli
-      completedCrop.y * scaleY, // titik Y di gambar asli
-      cropWidthOriginal,        // lebar area crop di gambar asli
-      cropHeightOriginal,       // tinggi area crop di gambar asli
+      completedCrop.x * scaleX, 
+      completedCrop.y * scaleY, 
+      cropWidthOriginal,
+      cropHeightOriginal,
       0,
       0,
       finalWidth,              // lebar canvas akhir 
@@ -145,9 +138,9 @@ const UserProfile = () => {
         const previewUrl = URL.createObjectURL(finalBlob);
         setAvatarPreview(previewUrl);
         setAvatarBlob(finalBlob);
-        setCropModalOpen(false); // Tutup Modal
+        setCropModalOpen(false); 
 
-        setImgSrc(""); // Reset
+        setImgSrc(""); 
         resolve(finalBlob);
       }, "image/jpeg", 0.8); 
     });
@@ -178,7 +171,7 @@ const UserProfile = () => {
       }
       
       fetchProfile();
-      setAvatarBlob(null); // Clear blob so the button disappears after success
+      setAvatarBlob(null); 
     } catch (err) {
       console.error(err);
       toast.error(err.response?.data?.message || "Gagal mengunggah foto profil, format tidak didukung.");

@@ -172,7 +172,6 @@ const PengumumanAdmin = () => {
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <Textinput
-            name="title"
             label="Judul"
             placeholder="Masukkan Judul Pengumuman"
             value={formData.title}

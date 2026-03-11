@@ -64,16 +64,25 @@ const Profile = ({ sticky }) => {
 
   const ProfileMenu = [
     {
+      label: "Dashboard",
+      icon: "ph:chart-bar",
+      status: "blue",
+      action: () => navigate("/dashboard"),
+      roles: ["manager"]
+    },
+    {
       label: "Profile",
       icon: "ph:user-circle-light",
       status: "green",
       action: () => navigate("/user/profile"),
+      roles: ["karyawan", "manager", "admin"]
     },
     {
       label: "Settings",
       icon: "ph:gear-light",
       status: "yellow",
       action: () => navigate("/settings"),
+      roles: ["karyawan", "manager", "admin"]
     },
   ];
 
@@ -81,8 +90,6 @@ const Profile = ({ sticky }) => {
     // 1. Bersihkan Storage
     localStorage.removeItem("user");
     localStorage.removeItem("token");
-
-    // 2. Reset Redux State
     dispatch(logOut());
 
     // 3. Paksa pindah ke login dan refresh state aplikasi
@@ -120,7 +127,7 @@ const Profile = ({ sticky }) => {
         </div>
       </div>
       <div className="space-y-3">
-        {ProfileMenu.map((item, index) => (
+       {ProfileMenu.filter((item) => item.roles.includes(user?.role)).map((item, index) => (
           <Menu.Item key={index}>
             {({ active }) => (
               <div
@@ -135,6 +142,7 @@ const Profile = ({ sticky }) => {
                   <div className="flex items-center space-x-3 rtl:space-x-reverse">
                     <span
                       className={`flex-none h-8 w-8 inline-flex items-center justify-center group-hover:scale-110 transition-all duration-200 rounded-full text-xl text-white
+                       ${item.status === "blue" ? "bg-blue-500" : ""}
                        ${item.status === "green" ? "bg-green-500" : ""}
                        ${item.status === "yellow" ? "bg-yellow-500" : ""}
                       `}

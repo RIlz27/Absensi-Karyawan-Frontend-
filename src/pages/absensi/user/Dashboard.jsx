@@ -3,10 +3,13 @@ import { Icon } from "@iconify/react";
 import { Link, useNavigate } from "react-router-dom";
 import API from "@/store/api/absensiService.js";
 import { useGetPengumumanUserQuery } from "@/store/api/pengumuman/pengumumanApiSlice";
+import { useGetLeaderboardQuery } from "@/store/api/point/pointApiSlice";
 
 const UserDashboard = () => {
   const navigate = useNavigate();
   const { data: pengumumans } = useGetPengumumanUserQuery();
+  const { data: leaderboardRes, isLoading: isLoadingLeaderboard } = useGetLeaderboardQuery(3);
+  const topLeaderboard = leaderboardRes?.data || [];
 
   // ... (keep state and useEffect the same)
   const [pengajuanLimit, setPengajuanLimit] = useState([]);
@@ -499,6 +502,76 @@ const UserDashboard = () => {
             )}
           </div>
         </div>
+
+        {/* Peringkat & Leaderboard Section */}
+        <div className="bg-white dark:bg-slate-800 rounded-[32px] p-6 shadow-xl shadow-indigo-900/10 border border-slate-100 dark:border-slate-800 mt-8 mb-4">
+          <div className="flex justify-between items-center mb-6 px-1 ">
+            <h4 className="font-bold text-slate-800 dark:text-white text-lg tracking-wide flex items-center gap-2">
+               <Icon icon="ph:medal-military-duotone" className="text-yellow-500 text-xl" />
+               Top Leaderboard
+            </h4>
+            <button
+              onClick={() => navigate("/user/point")}
+              className="text-indigo-600 dark:text-indigo-400 text-sm font-medium hover:underline"
+            >
+              Lihat Detail Poin Saya
+            </button>
+          </div>
+
+          <div className="space-y-3">
+            {isLoadingLeaderboard ? (
+              <div className="text-center text-slate-500 text-xs py-4">Memuat data...</div>
+            ) : topLeaderboard.length > 0 ? (
+              topLeaderboard.map((user, index) => {
+                const rankColors = ["text-yellow-500", "text-slate-400", "text-amber-600"];
+                const isTopThree = index < 3;
+                
+                return (
+                  <div
+                    key={user.id}
+                    className="bg-slate-50 dark:bg-[#0f172a] p-4 rounded-[24px] flex items-center gap-4 transition-all relative overflow-hidden"
+                  >
+                    {isTopThree && index === 0 && (
+                       <div className="absolute top-0 right-0 w-16 h-16 bg-yellow-500/10 rounded-full blur-[20px]"></div>
+                    )}
+                    <div className="flex-none w-8 text-center">
+                       {isTopThree ? (
+                          <Icon icon="ph:medal-fill" className={`mx-auto text-3xl ${rankColors[index]}`} />
+                        ) : (
+                          <span className="text-slate-500 font-bold text-lg">#{index + 1}</span>
+                        )}
+                    </div>
+                    <div className="h-10 w-10 rounded-full bg-[#E0EAFF] dark:bg-slate-700 flex flex-col items-center justify-center font-medium capitalize text-slate-900 dark:text-white flex-none overflow-hidden border border-white/10">
+                      {user.avatar ? (
+                          <img src={user.avatar} alt="Avatar" className="w-full h-full rounded-full object-cover" />
+                      ) : (
+                        user.name.charAt(0)
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-bold text-sm text-slate-800 dark:text-white mb-0.5 capitalize">
+                        {user.name}
+                      </h4>
+                      <p className="text-[11px] font-medium text-slate-500">
+                        {user.kantor?.name || "-"}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-400 border border-yellow-200 dark:border-yellow-700/30 shadow-sm">
+                         {user.points} pts
+                      </span>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="text-center text-slate-500 text-xs py-4">
+                Belum ada data poin.
+              </div>
+            )}
+          </div>
+        </div>
+
       </div>
     </div>
   );

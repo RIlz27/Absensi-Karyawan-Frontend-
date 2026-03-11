@@ -69,4 +69,19 @@ export const postShiftBiasa = async (payload) => (await API.post("/user-shifts/b
 export const postShiftTambahan = async (payload) => (await API.post("/user-shifts/tambahan", payload)).data;
 export const deleteUserShift = async (id) => (await API.delete(`/user-shifts/${id}`)).data;
 
+
+// PENILAIAN / KPI (Assessment Categories)
+export const getAssessmentCategories = async () => (await API.get("/assessment-categories")).data;
+export const getAssessmentCategoryById = async (id) => (await API.get(`/assessment-categories/${id}`)).data;
+export const createAssessmentCategory = async (data) => (await API.post("/assessment-categories", data)).data;
+export const updateAssessmentCategory = async (id, data) => (await API.put(`/assessment-categories/${id}`, data)).data;
+export const deleteAssessmentCategory = async (id) => (await API.delete(`/assessment-categories/${id}`)).data;
+
+// PENILAIAN / KPI (Transactions & Subordinates)
+export const getSubordinates = async () => (await API.get("/assessments/subordinates")).data;
+export const getAssessments = async (periodType = "") => (await API.get(periodType ? `/assessments?period_type=${periodType}` : "/assessments")).data;
+export const getAssessmentById = async (id) => (await API.get(`/assessments/${id}`)).data;
+export const submitAssessment = async (data) => (await API.post("/assessments", data)).data;
+
+
 export default API;

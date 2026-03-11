@@ -19,7 +19,7 @@ const schema = yup
     nip: yup
       .string()
       .required("NIP wajib diisi")
-      .min(3, "NIP minimal 5 karakter"), // Sesuaikan panjang NIP lo
+      .min(3, "NIP minimal 5 karakter"), 
     password: yup.string().required("Password wajib diisi"),
   })
   .required();
@@ -54,11 +54,9 @@ const LoginForm = () => {
 
         toast.success("Login Berhasil");
 
-        // LOGIC REDIRECT DISINI BRO
         if (response.user.role === "admin") {
           navigate("/dashboard");
         } else {
-          // Ganti dari "/app/home" ke "/user/dashboard"
           navigate("/user/dashboard");
         }
       }
@@ -72,7 +70,6 @@ const LoginForm = () => {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 ">
-      {/* 2. Update Input: Type text & Name nip */}
       <InputGroup
         name="nip"
         type="text"
@@ -92,26 +89,12 @@ const LoginForm = () => {
         type="password"
         placeholder="Password"
         prepend={<Icon icon="ph:lock-simple" />}
-        defaultValue="password"
+        defaultValue="airil0895"
         register={register}
         error={errors.password}
         merged
         disabled={isLoading}
       />
-
-      <div className="flex justify-between">
-        <Checkbox
-          value={checked}
-          onChange={() => setChecked(!checked)}
-          label="Ingat saya"
-        />
-        <Link
-          to="/forgot-password"
-          className="text-sm text-gray-400 dark:text-gray-400 hover:text-indigo-500 hover:underline"
-        >
-          Lupa Password?
-        </Link>
-      </div>
 
       <Button
         type="submit"

@@ -2,12 +2,13 @@ import React from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import useDarkMode from "@/hooks/useDarkMode";
-import {
-  LayoutDashboard, // Home/Dashboard
-  MapPin, // Point / Kantor
-  ScanLine, // Scan QR / Generate QR
-  BarChart3, // Statistik
-  UserCircle, // Profile
+import { 
+  LayoutDashboard, 
+  MapPin, 
+  ScanLine, 
+  BarChart3, 
+  UserCircle, 
+  ClipboardCheck 
 } from "lucide-react";
 
 const BottomNav = () => {
@@ -21,12 +22,12 @@ const BottomNav = () => {
 
   // Konfigurasi Menu Berdasarkan Role
   const KaryawanMenu = [
-    { name: "Home", path: "/user/dashboard", icon: LayoutDashboard },
-    { name: "Point", path: "/user/point", icon: MapPin }, // Fallback route jika belum ada
-    { name: "Scan", path: "/user/scanner", icon: ScanLine },
-    { name: "Stats", path: "/user/statistik", icon: BarChart3 }, // Fallback
-    { name: "Profile", path: "/user/profile", icon: UserCircle },
-  ];
+  { name: "Home", path: "/user/dashboard", icon: LayoutDashboard },
+  { name: "Penilaian", path: "/user/my-assessment", icon: ClipboardCheck }, 
+  { name: "Scan", path: "/user/scanner", icon: ScanLine },
+  { name: "Stats", path: "/user/statistik", icon: BarChart3 },
+  { name: "Profile", path: "/user/profile", icon: UserCircle },
+];
 
   const AdminMenu = [
     { name: "Home", path: "/dashboard", icon: LayoutDashboard },

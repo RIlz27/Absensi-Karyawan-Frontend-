@@ -85,7 +85,7 @@ const Dashboard = () => {
             title="Panel Operasional Admin"
             className="bg-slate-50 dark:bg-slate-800 h-full"
           >
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               
               {/* 1. MANAJEMEN KANTOR */}
               <div className="p-5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 flex flex-col h-full hover:shadow-md transition-shadow">
@@ -150,7 +150,28 @@ const Dashboard = () => {
                 </div>
               </div>
 
-              {/* 4. DATA KARYAWAN (Dipindah ke dalam grid sini) */}
+              {/* 4. LAPORAN ABSENSI */}
+              <div className="p-5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 flex flex-col h-full hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="h-10 w-10 bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-lg flex items-center justify-center">
+                    <Icon icon="ph:file-text-duotone" className="text-2xl" />
+                  </div>
+                  <h5 className="text-sm font-bold">Laporan Absensi</h5>
+                </div>
+                <p className="text-xs text-slate-500 mb-5 flex-grow">
+                  Rekap kehadiran harian dan bulanan karyawan detail.
+                </p>
+                <div className="mt-auto">
+                  <Link to="/admin/laporan">
+                    <Button
+                      text="Lihat Laporan"
+                      className="bg-emerald-500 hover:bg-emerald-600 btn-sm w-full text-white shadow-md shadow-emerald-500/20"
+                    />
+                  </Link>
+                </div>
+              </div>
+
+              {/* 5. DATA KARYAWAN */}
               <div className="p-5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 flex flex-col h-full hover:shadow-md transition-shadow">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="h-10 w-10 bg-rose-100 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400 rounded-lg flex items-center justify-center">
@@ -171,22 +192,88 @@ const Dashboard = () => {
                 </div>
               </div>
 
-              {/* 5. LAPORAN ABSENSI (Dipindah ke dalam grid sini) */}
-              <div className="p-5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 flex flex-col h-full hover:shadow-md transition-shadow">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="h-10 w-10 bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-lg flex items-center justify-center">
-                    <Icon icon="ph:file-text-duotone" className="text-2xl" />
-                  </div>
-                  <h5 className="text-sm font-bold">Laporan Absensi</h5>
+              {/* 6. MONITORING KALENDER */}
+              <div className="p-5 border border-slate-200 dark:border-slate-700 rounded-xl bg-gradient-to-br from-indigo-50 to-white dark:from-indigo-900/10 dark:to-slate-900 flex flex-col h-full hover:shadow-md transition-shadow relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-2 text-indigo-200 dark:text-indigo-500/10 text-6xl rotate-12">
+                   <Icon icon="ph:calendar-star-duotone" />
                 </div>
-                <p className="text-xs text-slate-500 mb-5 flex-grow">
-                  Rekap kehadiran harian dan bulanan karyawan detail.
+                <div className="flex items-center gap-3 mb-3 relative z-10">
+                  <div className="h-10 w-10 bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 rounded-lg flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                    <Icon icon="ph:calendar-star-duotone" className="text-2xl" />
+                  </div>
+                  <h5 className="text-sm font-bold text-slate-800 dark:text-white">Admin Kalender</h5>
+                </div>
+                <p className="text-xs text-slate-500 mb-5 flex-grow relative z-10">
+                  Peta interaktif kehadiran bulanan & panel darurat bypass jadwal.
                 </p>
                 <div className="mt-auto">
-                  <Link to="/admin/laporan">
+                  <Link to="/admin/calendar">
                     <Button
-                      text="Lihat Laporan"
-                      className="bg-emerald-500 hover:bg-emerald-600 btn-sm w-full text-white shadow-md shadow-emerald-500/20"
+                      text="Buka Kalender"
+                      className="bg-indigo-600 hover:bg-indigo-700 btn-sm w-full text-white shadow-md shadow-indigo-500/20 font-bold"
+                    />
+                  </Link>
+                </div>
+              </div>
+
+               {/* 7. LEADERBOARD */}
+               {/* <div className="p-5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 flex flex-col h-full hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="h-10 w-10 bg-yellow-100 dark:bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 rounded-lg flex items-center justify-center">
+                    <Icon icon="ph:medal-military-duotone" className="text-2xl" />
+                  </div>
+                  <h5 className="text-sm font-bold">Peringkat & Poin</h5>
+                </div>
+                <p className="text-xs text-slate-500 mb-5 flex-grow">
+                  Pantau peringkat terbaik karyawan & berikan poin engagement.
+                </p>
+                <div className="mt-auto">
+                  <Link to="/admin/leaderboard">
+                    <Button
+                      text="Kelola Peringkat"
+                      className="bg-yellow-500 hover:bg-yellow-600 btn-sm w-full text-white shadow-md shadow-yellow-500/20"
+                    />
+                  </Link>
+                </div>
+              </div> */}
+ 
+               {/* 7. LEADERBOARD */}
+               <div className="p-5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 flex flex-col h-full hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="h-10 w-10 bg-yellow-100 dark:bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 rounded-lg flex items-center justify-center">
+                    <Icon icon="ph:medal-military-duotone" className="text-2xl" />
+                  </div>
+                  <h5 className="text-sm font-bold">Penilaian</h5>
+                </div>
+                <p className="text-xs text-slate-500 mb-5 flex-grow">
+                  Pantau Sikap Karyawan dengan penilaian.
+                </p>
+                <div className="mt-auto">
+                  <Link to="/admin/assessments">
+                    <Button
+                      text="Kelola Peringkat"
+                      className="bg-yellow-500 hover:bg-yellow-600 btn-sm w-full text-white shadow-md shadow-yellow-500/20"
+                    />
+                  </Link>
+                </div>
+              </div>
+
+               {/* 8. PENGUMUMAN */}
+               <div className="p-5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 flex flex-col h-full hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="h-10 w-10 bg-fuchsia-100 dark:bg-fuchsia-500/20 text-fuchsia-600 dark:text-fuchsia-400 rounded-lg flex items-center justify-center">
+                    <Icon icon="ph:megaphone-duotone" className="text-2xl" />
+                  </div>
+                  <h5 className="text-sm font-bold">Pengumuman</h5>
+                </div>
+                <p className="text-xs text-slate-500 mb-5 flex-grow">
+                  Broadcast pesan, agenda, dan informasi ke seluruh karyawan.
+                </p>
+                <div className="mt-auto">
+                  <Link to="/admin/pengumuman">
+                    <Button
+                      text="Draft Pengumuman"
+                      className="bg-fuchsia-500 hover:bg-fuchsia-600 btn-sm w-full text-white shadow-md shadow-fuchsia-500/20"
                     />
                   </Link>
                 </div>
