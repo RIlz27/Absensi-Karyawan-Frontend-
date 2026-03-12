@@ -83,5 +83,18 @@ export const getAssessments = async (periodType = "") => (await API.get(periodTy
 export const getAssessmentById = async (id) => (await API.get(`/assessments/${id}`)).data;
 export const submitAssessment = async (data) => (await API.post("/assessments", data)).data;
 
+//PENILAIAN QUESTION
+export const getQuestionsByCategory = async (categoryId) =>
+  (await API.get(`/assessment-questions/category/${categoryId}`)).data;
+
+export const createQuestion = async (data) =>
+  (await API.post("/assessment-questions", data)).data;
+
+export const updateQuestion = async (id, data) =>
+  (await API.put(`/assessment-questions/${id}`, data)).data;
+
+export const deleteQuestion = async (id) =>
+  (await API.delete(`/assessment-questions/${id}`)).data;
+
 
 export default API;

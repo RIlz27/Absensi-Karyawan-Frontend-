@@ -1,18 +1,31 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Icon } from "@iconify/react";
-import { getSubordinates, getAssessmentCategories, submitAssessment } from "@/store/api/absensiService";
+import {
+  getSubordinates,
+  getAssessmentCategories,
+  submitAssessment,
+} from "@/store/api/absensiService";
 
 // Helper Avatar
 const getAvatarUrl = (path) => {
-  if (!path) return "https://ui-avatars.com/api/?name=User&background=7f13ec&color=fff";
+  if (!path)
+    return "https://ui-avatars.com/api/?name=User&background=7f13ec&color=fff";
   if (path.startsWith("http")) return path;
-  const baseUrl = import.meta.env.VITE_API_URL?.replace("/api", "") || "http://127.0.0.1:8000";
+  const baseUrl =
+    import.meta.env.VITE_API_URL?.replace("/api", "") ||
+    "http://127.0.0.1:8000";
   return `${baseUrl}/storage/${path}`;
 };
 
 // Array warna biar icon kategorinya warna-warni kayak di desain lu
-const bgColors = ["bg-violet-600", "bg-amber-500", "bg-blue-500", "bg-emerald-500", "bg-rose-500"];
+const bgColors = [
+  "bg-violet-600",
+  "bg-amber-500",
+  "bg-blue-500",
+  "bg-emerald-500",
+  "bg-rose-500",
+];
 
 export default function AssessmentForm() {
   const { id } = useParams(); // ID karyawan yang mau dinilai
@@ -35,14 +48,18 @@ export default function AssessmentForm() {
           getAssessmentCategories(),
         ]);
 
-        // Cari data karyawan berdasarkan ID dari URL
-        const employee = (Array.isArray(subsData) ? subsData : []).find(sub => sub.id === parseInt(id));
+        // Data per karyawan per id
+        const employee = (Array.isArray(subsData) ? subsData : []).find(
+          (sub) => sub.id === parseInt(id),
+        );
         setEvaluatee(employee);
 
-        // Filter cuma kategori yang aktif aja yang ditampilin
-        const activeCategories = (Array.isArray(catsData) ? catsData : []).filter(c => c.is_active);
-        setCategories(activeCategories);
+        // Filter aktif kategori
+        const activeCategories = (
+          Array.isArray(catsData) ? catsData : []
+        ).filter((c) => c.is_active && c.questions && c.questions.length > 0);
 
+        setCategories(activeCategories);
       } catch (error) {
         console.error("Gagal menarik data:", error);
       } finally {
@@ -58,9 +75,17 @@ export default function AssessmentForm() {
   };
 
   const handleSubmit = async () => {
+    //total quest
+    const totalQuestions = categories.reduce(
+      (acc, cat) => acc + cat.questions.length,
+      0,
+    );
+
     // Validasi: Pastiin semua kategori udah diisi nilainya
-    if (Object.keys(scores).length < categories.length) {
-      alert("Harap isi semua nilai indikator sebelum menyimpan!");
+    if (Object.keys(scores).length < totalQuestions) {
+      alert(
+        `Harap isi semua (${totalQuestions}) butir penilaian sebelum menyimpan!`,
+      );
       return;
     }
 
@@ -75,8 +100,8 @@ export default function AssessmentForm() {
       period_name: periodName,
       general_notes: notes,
       is_visible: true,
-      details: Object.entries(scores).map(([category_id, score]) => ({
-        category_id: parseInt(category_id),
+      details: Object.entries(scores).map(([question_id, score]) => ({
+        question_id: parseInt(question_id),
         score: parseInt(score),
       })),
     };
@@ -96,8 +121,13 @@ export default function AssessmentForm() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-3">
-        <Icon icon="ph:spinner-gap-bold" className="text-4xl text-violet-600 animate-spin" />
-        <p className="text-violet-600 font-bold text-sm">Menyiapkan Form Penilaian...</p>
+        <Icon
+          icon="ph:spinner-gap-bold"
+          className="text-4xl text-violet-600 animate-spin"
+        />
+        <p className="text-violet-600 font-bold text-sm">
+          Menyiapkan Form Penilaian...
+        </p>
       </div>
     );
   }
@@ -112,72 +142,105 @@ export default function AssessmentForm() {
 
   return (
     <div className="w-full pb-24 space-y-2 pt-2 bg-slate-50 dark:bg-slate-950 min-h-screen">
-      
       {/* Top App Bar */}
       <div className="flex items-center px-4 mb-4 justify-between">
-        <button onClick={() => navigate(-1)} className="text-violet-600 flex size-10 items-center justify-center rounded-full hover:bg-violet-600/10 transition-colors">
+        <button
+          onClick={() => navigate(-1)}
+          className="text-violet-600 flex size-10 items-center justify-center rounded-full hover:bg-violet-600/10 transition-colors"
+        >
           <Icon icon="ph:arrow-left-bold" className="text-xl" />
         </button>
-        <h2 className="text-slate-900 dark:text-slate-100 text-lg font-bold">Penilaian Kinerja</h2>
+        <h2 className="text-slate-900 dark:text-slate-100 text-lg font-bold">
+          Penilaian Kinerja
+        </h2>
         <div className="w-10"></div> {/* Spacer biar judul di tengah */}
       </div>
 
       {/* Employee Profile Header */}
       <div className="flex flex-col items-center px-6 py-4 bg-white dark:bg-slate-900 mx-4 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 mb-6">
-        <div className="bg-center bg-no-repeat bg-cover rounded-full ring-4 ring-violet-600/10 size-24 mb-3" 
-             style={{ backgroundImage: `url(${getAvatarUrl(evaluatee.avatar)})` }}>
-        </div>
+        <div
+          className="bg-center bg-no-repeat bg-cover rounded-full ring-4 ring-violet-600/10 size-24 mb-3"
+          style={{ backgroundImage: `url(${getAvatarUrl(evaluatee.avatar)})` }}
+        ></div>
         <div className="flex flex-col items-center justify-center text-center">
-          <p className="text-slate-900 dark:text-slate-100 text-xl font-bold capitalize">{evaluatee.name}</p>
-          <p className="text-violet-600 font-bold text-xs uppercase tracking-wider mt-1">{evaluatee.role} • NIP: {evaluatee.nip || '-'}</p>
+          <p className="text-slate-900 dark:text-slate-100 text-xl font-bold capitalize">
+            {evaluatee.name}
+          </p>
+          <p className="text-violet-600 font-bold text-xs uppercase tracking-wider mt-1">
+            {evaluatee.role} • NIP: {evaluatee.nip || "-"}
+          </p>
         </div>
       </div>
 
       {/* Rating Categories */}
       <div className="px-4">
-        <h3 className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider mb-3 px-1">Indikator Penilaian (1 - 5)</h3>
-        
-        <div className="space-y-3">
-          {categories.length > 0 ? categories.map((cat, index) => {
-            const colorClass = bgColors[index % bgColors.length]; // Rotasi warna icon
-            const currentScore = scores[cat.id];
+        <h3 className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider mb-3 px-1">
+          Indikator Penilaian (1 - 5)
+        </h3>
 
-            return (
-              <div key={cat.id} className="bg-white dark:bg-slate-900 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 flex flex-col gap-3">
-                <div className="flex items-center gap-3">
-                  <div className={`text-white flex items-center justify-center rounded-lg ${colorClass} shrink-0 size-10`}>
-                    <Icon icon="ph:star-fill" className="text-xl" />
+        <div className="space-y-3">
+          {categories.length > 0 ? (
+            categories.map((cat, index) => {
+              const colorClass = bgColors[index % bgColors.length]; // Rotasi warna icon
+              const currentScore = scores[cat.id];
+
+              return (
+                <div key={cat.id} className="space-y-3">
+                  {/* 1. Header Kategori (Gaya asli lu) */}
+                  <div className="bg-white dark:bg-slate-900 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 flex items-center gap-3">
+                    <div
+                      className={`text-white flex items-center justify-center rounded-lg ${colorClass} shrink-0 size-10`}
+                    >
+                      <Icon icon="ph:star-fill" className="text-xl" />
+                    </div>
+                    <div className="flex flex-col">
+                      <p className="text-slate-900 dark:text-slate-100 text-sm font-bold leading-tight">
+                        {cat.name}
+                      </p>
+                      <p className="text-slate-500 dark:text-slate-400 text-[10px] uppercase tracking-wider mt-0.5">
+                        {cat.description || "Penilaian Standar"}
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex flex-col">
-                    <p className="text-slate-900 dark:text-slate-100 text-sm font-bold leading-tight">{cat.name}</p>
-                    <p className="text-slate-500 dark:text-slate-400 text-[10px] uppercase tracking-wider mt-0.5">{cat.description || "Penilaian Standar"}</p>
-                  </div>
-                </div>
-                
-                {/* Tombol Bintang 1-5 */}
-                <div className="flex gap-2 w-full justify-between pt-2">
-                  {[1, 2, 3, 4, 5].map((num) => {
-                    const isSelected = currentScore === num;
-                    return (
-                      <button
-                        key={num}
-                        onClick={() => handleScoreChange(cat.id, num)}
-                        className={`flex-1 py-2.5 rounded-lg border-2 font-bold transition-all ${
-                          isSelected 
-                            ? "border-violet-600 bg-violet-600 text-white shadow-md shadow-violet-600/30 scale-105" 
-                            : "border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500 hover:border-violet-600/50 hover:text-violet-600"
-                        }`}
+
+                  {/* 2. Daftar Pertanyaan (Iterasi di bawah Header) */}
+                  <div className="pl-4 space-y-3 border-l-2 border-slate-200 dark:border-slate-800 ml-5">
+                    {cat.questions.map((q) => (
+                      <div
+                        key={q.id}
+                        className="bg-white dark:bg-slate-900 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 space-y-3"
                       >
-                        {num}
-                      </button>
-                    );
-                  })}
+                        <p className="text-slate-700 dark:text-slate-300 text-sm font-medium leading-relaxed">
+                          {q.question_text}
+                        </p>
+
+                        {/* Tombol Skor 1-5 per Pertanyaan */}
+                        <div className="flex gap-2 w-full justify-between">
+                          {[1, 2, 3, 4, 5].map((num) => (
+                            <button
+                              key={num}
+                              onClick={() => handleScoreChange(q.id, num)}
+                              className={`flex-1 py-2 rounded-lg border-2 font-bold transition-all ${
+                                scores[q.id] === num
+                                  ? "border-violet-600 bg-violet-600 text-white scale-105 shadow-md shadow-violet-600/20"
+                                  : "border-slate-100 dark:border-slate-800 text-slate-400 dark:text-slate-500 hover:border-violet-600/50"
+                              }`}
+                            >
+                              {num}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            );
-          }) : (
+              );
+            })
+          ) : (
             <div className="text-center py-6 bg-white dark:bg-slate-900 rounded-xl">
-              <p className="text-slate-500 text-sm">Belum ada kategori aktif dari Admin.</p>
+              <p className="text-slate-500 text-sm">
+                Belum ada kategori aktif dari Admin.
+              </p>
             </div>
           )}
         </div>
@@ -185,18 +248,20 @@ export default function AssessmentForm() {
 
       {/* Feedback Area */}
       <div className="p-4 mt-2">
-        <h3 className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider mb-3 px-1">Catatan & Evaluasi (Opsional)</h3>
-        <textarea 
+        <h3 className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider mb-3 px-1">
+          Catatan & Evaluasi (Opsional)
+        </h3>
+        <textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          className="w-full min-h-[120px] rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-violet-600/50 focus:border-violet-600 p-4 text-sm resize-none" 
+          className="w-full min-h-[120px] rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-violet-600/50 focus:border-violet-600 p-4 text-sm resize-none"
           placeholder="Berikan feedback atau saran pengembangan untuk karyawan ini..."
         ></textarea>
       </div>
 
       {/* Action Buttons */}
       <div className="px-4 pb-10">
-        <button 
+        <button
           onClick={handleSubmit}
           disabled={isSubmitting || categories.length === 0}
           className="w-full bg-violet-600 hover:bg-violet-700 text-white py-3.5 rounded-xl font-bold text-sm shadow-lg shadow-violet-600/30 flex items-center justify-center gap-2 disabled:opacity-50 transition-all"
@@ -211,7 +276,6 @@ export default function AssessmentForm() {
           )}
         </button>
       </div>
-
     </div>
   );
 }
