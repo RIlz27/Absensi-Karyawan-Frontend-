@@ -31,7 +31,7 @@ export default function AssessmentDetail() {
         const userHistory = (Array.isArray(allAssessments) ? allAssessments : [])
           .filter((a) => a.evaluatee_id === currentData.evaluatee_id)
           .sort((a, b) => new Date(b.assessment_date) - new Date(a.assessment_date)); // Urut dari terbaru
-        
+
         setHistory(userHistory);
       } catch (error) {
         console.error("Gagal menarik data detail:", error);
@@ -49,7 +49,7 @@ export default function AssessmentDetail() {
 
     const details = assessment.details;
     const maxScorePerItem = 5; // Karena form kita skalanya 1-5
-    
+
     let totalScore = 0;
     let highest = details[0];
     let lowest = details[0];
@@ -67,35 +67,64 @@ export default function AssessmentDetail() {
 
   // Logic Generate Titik Koordinat buat Grafik Radar SVG
   const radarData = useMemo(() => {
-    if (!assessment || !assessment.details) return { polygon: "", labels: [] };
-    
+    // 1. Safety Check: Kalau data belum ada, kasih default biar gak NaN
+    if (!assessment || !assessment.details || assessment.details.length === 0) {
+      return { polygon: "", labels: [] };
+    }
+
     const details = assessment.details;
-    const cx = 100, cy = 100, maxR = 60; // Max radius chart
-    const labelR = 85; // Jarak teks label
-    const angleStep = (Math.PI * 2) / details.length;
+
+    // 2. Grouping & Rata-rata per Kategori
+    const categoryMap = {};
+    details.forEach((d) => {
+      const catName = d.category?.name || "Lainnya";
+      if (!categoryMap[catName]) {
+        categoryMap[catName] = { totalScore: 0, count: 0 };
+      }
+      categoryMap[catName].totalScore += (Number(d.score) || 0); // Pastiin angka
+      categoryMap[catName].count += 1;
+    });
+
+    const categories = Object.keys(categoryMap).map((name) => ({
+      name,
+      avgScore: categoryMap[name].totalScore / categoryMap[name].count,
+    }));
+
+    // 3. Tambahan Safety: Kalau kategori cuma dikit, radar chart bakal aneh/NaN
+    if (categories.length < 3) {
+      // Radar chart minimal butuh 3 titik biar gak garis doang
+      // Lu bisa handle atau return kosong dulu
+      return { polygon: "", labels: [] };
+    }
+
+    const cx = 100, cy = 100, maxR = 60;
+    const labelR = 85;
+    const angleStep = (Math.PI * 2) / categories.length;
 
     const points = [];
     const labels = [];
 
-    details.forEach((d, i) => {
+    categories.forEach((cat, i) => {
       const angle = -Math.PI / 2 + i * angleStep;
-      
-      // Hitung koordinat Polygon (Skala 1-5)
-      const r = (d.score / 5) * maxR;
+
+      // Safety check skor: pastiin skalanya 1-5
+      const safeScore = Math.min(Math.max(cat.avgScore, 0), 5);
+      const r = (safeScore / 5) * maxR;
+
       const x = cx + r * Math.cos(angle);
       const y = cy + r * Math.sin(angle);
-      points.push(`${x},${y}`);
 
-      // Hitung koordinat Label
+      // Pembulatan biar gak kepanjangan angkanya di atribut SVG
+      points.push(`${x.toFixed(2)},${y.toFixed(2)}`);
+
       const lx = cx + labelR * Math.cos(angle);
       const ly = cy + labelR * Math.sin(angle);
-      
-      // Bikin teks label rapi (rata kiri/tengah/kanan)
+
       let textAnchor = "middle";
       if (Math.cos(angle) > 0.1) textAnchor = "start";
       if (Math.cos(angle) < -0.1) textAnchor = "end";
 
-      labels.push({ id: d.id, name: d.category?.name || "Kategori", x: lx, y: ly, textAnchor });
+      labels.push({ name: cat.name, x: lx, y: ly, textAnchor });
     });
 
     return { polygon: points.join(" "), labels };
@@ -120,8 +149,8 @@ export default function AssessmentDetail() {
       <div className="p-6 bg-white dark:bg-slate-900/40 border-b border-slate-200 dark:border-slate-800">
         <div className="flex flex-col md:flex-row gap-6 items-center">
           <div className="bg-violet-600/20 p-1 rounded-full border-2 border-violet-600 shrink-0">
-            <div className="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-24 w-24 md:h-32 md:w-32" 
-                 style={{ backgroundImage: `url(${getAvatarUrl(evaluatee?.avatar)})` }}>
+            <div className="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-24 w-24 md:h-32 md:w-32"
+              style={{ backgroundImage: `url(${getAvatarUrl(evaluatee?.avatar)})` }}>
             </div>
           </div>
           <div className="flex-1 text-center md:text-left">
@@ -151,58 +180,93 @@ export default function AssessmentDetail() {
 
       {/* Dashboard Content */}
       <main className="p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
+
         {/* Kolom Kiri: Radar & History */}
         <div className="lg:col-span-8 space-y-6">
-          
+
           {/* Radar Chart Section */}
-          <section className="bg-white dark:bg-slate-900/50 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+          <section className="bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-800 transition-all hover:shadow-md">
             <div className="flex items-center justify-between mb-8">
               <div>
-                <h3 className="text-xl font-bold dark:text-white">Pemetaan Kompetensi</h3>
-                <p className="text-sm text-slate-500">Visualisasi nilai performa periode ini</p>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <Icon icon="ph:chart-polar-bold" className="text-violet-600" />
+                  Pemetaan Kompetensi
+                </h3>
+                <p className="text-xs text-slate-500 mt-1">Visualisasi nilai performa periode ini</p>
               </div>
             </div>
-            
-            <div className="relative flex items-center justify-center aspect-square max-w-sm mx-auto py-4">
-              <svg className="w-full h-full" viewBox="0 0 200 200">
-                {/* Garis Jaring (Background) */}
-                <circle className="fill-none stroke-slate-200 dark:stroke-slate-700" cx="100" cy="100" r="60" strokeWidth="1"></circle>
-                <circle className="fill-none stroke-slate-200 dark:stroke-slate-700" cx="100" cy="100" r="45" strokeWidth="1"></circle>
-                <circle className="fill-none stroke-slate-200 dark:stroke-slate-700" cx="100" cy="100" r="30" strokeWidth="1"></circle>
-                <circle className="fill-none stroke-slate-200 dark:stroke-slate-700" cx="100" cy="100" r="15" strokeWidth="1"></circle>
-                
-                {/* Sumbu Silang (Sesuai jumlah kategori) */}
+
+            <div className="relative flex items-center justify-center aspect-square max-w-[280px] mx-auto">
+              <svg className="w-full h-full overflow-visible" viewBox="0 0 200 200">
+                {/* 1. Garis Jaring (Spider Web Background) */}
+                {[0.25, 0.5, 0.75, 1].map((scale) => (
+                  <circle
+                    key={`web-${scale}`}
+                    className="fill-none stroke-slate-200 dark:stroke-slate-800"
+                    cx="100"
+                    cy="100"
+                    r={60 * scale}
+                    strokeWidth="1"
+                    strokeDasharray={scale === 1 ? "0" : "4 2"} // Garis luar solid, garis dalam putus-putus
+                  />
+                ))}
+
+                {/* 2. Sumbu Aksis (Garis Jari-jari) */}
                 {radarData.labels.map((lbl, idx) => {
-                  const angle = -Math.PI / 2 + idx * ((Math.PI * 2) / assessment.details.length);
+                  const angle = -Math.PI / 2 + idx * ((Math.PI * 2) / radarData.labels.length);
                   return (
-                    <line key={`axis-${idx}`} className="stroke-slate-200 dark:stroke-slate-700" x1="100" y1="100" x2={100 + 60 * Math.cos(angle)} y2={100 + 60 * Math.sin(angle)} />
+                    <line
+                      key={`axis-${idx}`}
+                      className="stroke-slate-200 dark:stroke-slate-800"
+                      x1="100"
+                      y1="100"
+                      x2={100 + 60 * Math.cos(angle)}
+                      y2={100 + 60 * Math.sin(angle)}
+                      strokeWidth="1"
+                    />
                   );
                 })}
 
-                {/* Data Shape (Jaring Ungu) */}
-                <polygon className="fill-violet-600/30 stroke-violet-600" points={radarData.polygon} strokeWidth="2"></polygon>
-                
-                {/* Titik Sudut */}
-                {radarData.polygon.split(" ").map((pt, idx) => {
-                  if(!pt) return null;
+                {/* 3. Data Shape (Area Ungu) */}
+                <polygon
+                  className="fill-violet-600/20 stroke-violet-600 transition-all duration-700 ease-out"
+                  points={radarData.polygon}
+                  strokeWidth="2.5"
+                  strokeLinejoin="round"
+                />
+
+                {/* 4. Titik Sudut Data */}
+                {radarData.polygon.split(" ").filter(pt => pt).map((pt, idx) => {
                   const [x, y] = pt.split(",");
-                  return <circle key={`pt-${idx}`} className="fill-violet-600" cx={x} cy={y} r="3"></circle>;
+                  return (
+                    <g key={`group-pt-${idx}`}>
+                      <circle className="fill-white stroke-violet-600" cx={x} cy={y} r="3.5" strokeWidth="2" />
+                      <circle className="fill-violet-600 animate-pulse" cx={x} cy={y} r="1.5" />
+                    </g>
+                  );
                 })}
 
-                {/* Teks Label Kategori */}
+                {/* 5. Teks Label Kategori (Rapi & Responsive) */}
                 {radarData.labels.map((lbl, idx) => (
-                  <text 
-                    key={`lbl-${idx}`} 
-                    x={lbl.x} y={lbl.y} 
-                    textAnchor={lbl.textAnchor} 
-                    alignmentBaseline="middle"
-                    className="text-[8px] font-bold fill-slate-700 dark:fill-slate-300"
+                  <text
+                    key={`lbl-${idx}`}
+                    x={lbl.x}
+                    y={lbl.y}
+                    textAnchor={lbl.textAnchor}
+                    className="text-[9px] font-bold fill-slate-600 dark:fill-slate-400 uppercase tracking-tighter"
                   >
-                    {lbl.name}
+                    {lbl.name.length > 12 ? `${lbl.name.substring(0, 10)}...` : lbl.name}
                   </text>
                 ))}
               </svg>
+            </div>
+
+            {/* Legend Sederhana di Bawah Chart */}
+            <div className="mt-8 flex justify-center gap-4">
+              <div className="flex items-center gap-1.5">
+                <div className="size-2 rounded-full bg-violet-600"></div>
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Current Skill</span>
+              </div>
             </div>
           </section>
 
@@ -229,9 +293,9 @@ export default function AssessmentDetail() {
                       <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400 capitalize">{hist.evaluator?.name || '-'}</td>
                       <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">
                         {hist.general_notes ? (
-                           <span className="line-clamp-2">{hist.general_notes}</span>
+                          <span className="line-clamp-2">{hist.general_notes}</span>
                         ) : (
-                           <em className="text-slate-400">Tidak ada catatan.</em>
+                          <em className="text-slate-400">Tidak ada catatan.</em>
                         )}
                       </td>
                       <td className="px-6 py-4">
@@ -257,7 +321,7 @@ export default function AssessmentDetail() {
 
         {/* Kolom Kanan: Stats Bar */}
         <div className="lg:col-span-4 space-y-6">
-          
+
           {/* Current Score */}
           <div className="bg-violet-600 p-6 rounded-xl text-white shadow-lg shadow-violet-600/20">
             <p className="text-white/80 text-sm font-medium">Skor Keseluruhan</p>
@@ -275,7 +339,7 @@ export default function AssessmentDetail() {
           <div className="bg-white dark:bg-slate-900/50 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
             <h3 className="font-bold mb-4 dark:text-white">Analisis Kinerja</h3>
             <div className="space-y-5">
-              
+
               <div className="flex items-start gap-3">
                 <div className="bg-emerald-100 dark:bg-emerald-900/30 p-2.5 rounded-lg text-emerald-600 dark:text-emerald-400 shrink-0">
                   <Icon icon="ph:trend-up-bold" className="text-xl" />

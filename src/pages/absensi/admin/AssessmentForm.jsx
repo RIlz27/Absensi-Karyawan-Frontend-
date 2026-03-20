@@ -70,49 +70,52 @@ export default function AssessmentForm() {
     fetchData();
   }, [id]);
 
-  const handleScoreChange = (categoryId, score) => {
-    setScores((prev) => ({ ...prev, [categoryId]: score }));
+  const handleScoreChange = (questionId, score) => {
+    setScores((prev) => ({ ...prev, [questionId]: score }));
   };
 
   const handleSubmit = async () => {
-    //total quest
     const totalQuestions = categories.reduce(
-      (acc, cat) => acc + cat.questions.length,
-      0,
+      (acc, cat) => acc + (cat.questions ? cat.questions.length : 0),
+      0
     );
 
     // Validasi: Pastiin semua kategori udah diisi nilainya
     if (Object.keys(scores).length < totalQuestions) {
-      alert(
-        `Harap isi semua (${totalQuestions}) butir penilaian sebelum menyimpan!`,
-      );
+      alert(`Baru ${Object.keys(scores).length} dari ${totalQuestions} pertanyaan yang dinilai. Harap isi semua!`);
       return;
     }
 
     setIsSubmitting(true);
     const today = new Date();
-    const periodName = `${today.toLocaleString("id-ID", { month: "long" })} ${today.getFullYear()}`; // Cth: Maret 2026
+    const periodName = `${today.toLocaleString("id-ID", { month: "long" })} ${today.getFullYear()}`;
 
     const payload = {
-      evaluatee_id: id,
+      evaluatee_id: parseInt(id),
       assessment_date: today.toISOString().split("T")[0],
       period_type: "Bulanan",
       period_name: periodName,
-      general_notes: notes,
+      general_notes: notes || "-",
       is_visible: true,
-      details: Object.entries(scores).map(([question_id, score]) => ({
-        question_id: parseInt(question_id),
-        score: parseInt(score),
+      details: Object.entries(scores).map(([qId, val]) => ({
+        question_id: parseInt(qId),
+        score: parseInt(val),
       })),
     };
 
     try {
+      console.log("Payload dikirim:", payload); // Buat debug
       await submitAssessment(payload);
       alert("Penilaian berhasil disimpan!");
-      navigate("/admin/assessments"); // Balik ke dashboard KPI
+      navigate("/admin/assessments");
     } catch (error) {
-      console.error("Gagal submit:", error);
-      alert("Terjadi kesalahan saat menyimpan penilaian.");
+      // TIPS: Biar tau error 422-nya karena apa
+      if (error.response && error.response.status === 422) {
+        console.error("Detail Error Validation:", error.response.data.errors);
+        alert("Gagal: Data tidak valid. Cek console log!");
+      } else {
+        alert("Terjadi kesalahan saat menyimpan penilaian.");
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -220,11 +223,10 @@ export default function AssessmentForm() {
                             <button
                               key={num}
                               onClick={() => handleScoreChange(q.id, num)}
-                              className={`flex-1 py-2 rounded-lg border-2 font-bold transition-all ${
-                                scores[q.id] === num
-                                  ? "border-violet-600 bg-violet-600 text-white scale-105 shadow-md shadow-violet-600/20"
-                                  : "border-slate-100 dark:border-slate-800 text-slate-400 dark:text-slate-500 hover:border-violet-600/50"
-                              }`}
+                              className={`flex-1 py-2 rounded-lg border-2 font-bold transition-all ${scores[q.id] === num
+                                ? "border-violet-600 bg-violet-600 text-white scale-105 shadow-md shadow-violet-600/20"
+                                : "border-slate-100 dark:border-slate-800 text-slate-400 dark:text-slate-500 hover:border-violet-600/50"
+                                }`}
                             >
                               {num}
                             </button>

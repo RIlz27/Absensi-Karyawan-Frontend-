@@ -35,27 +35,32 @@ export default function ManagerAssessmentDashboard() {
   });
 
   // 2. Logic Pemisah Status (Pending vs Completed)
-  const { pending, completed, progressPercentage } = useMemo(() => {
+  const { pending, completed, progressPercentage, teamAverage } = useMemo(() => {
     const completedList = [];
     const pendingList = [];
+    let totalTeamScore = 0;
 
     subordinates.forEach((sub) => {
-      // Cari apakah karyawan ini udah dinilai di bulan/periode ini
       const hasAssessed = assessments.find(
         (a) => a.evaluatee_id === sub.id && a.period_name === currentPeriod
       );
 
       if (hasAssessed) {
         completedList.push({ subordinate: sub, assessment: hasAssessed });
+
+        //Rata rata Score
+        const avgScore = hasAssessed.details?.reduce((acc, d) => acc + d.score, 0) / (hasAssessed.details?.length || 1);
+        totalTeamScore += avgScore;
       } else {
         pendingList.push(sub);
       }
     });
 
+    const avg = completedList.length === 0 ? 0 : (totalTeamScore / completedList.length).toFixed(1);
     const total = subordinates.length;
     const progress = total === 0 ? 0 : Math.round((completedList.length / total) * 100);
 
-    return { pending: pendingList, completed: completedList, progressPercentage: progress };
+    return { pending: pendingList, completed: completedList, progressPercentage: progress, totalAverage: avg };
   }, [subordinates, assessments, currentPeriod]);
 
   const isLoading = isLoadingSubs || isLoadingAssessments;
@@ -67,6 +72,47 @@ export default function ManagerAssessmentDashboard() {
   return (
     <div className="bg-[#f7f6f8] dark:bg-[#191022] font-inter text-slate-900 dark:text-slate-100 min-h-screen flex flex-col">
       <main className="flex-1 max-w-md mx-auto w-full p-4 space-y-6">
+        {/* --- REKAPAN HASIL TIM --- */}
+        <section className="grid grid-cols-2 gap-3">
+          <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm">
+            <div className="flex items-center gap-2 mb-1">
+              <Icon icon="ph:trend-up-bold" className="text-emerald-500" />
+              <span className="text-[10px] font-bold text-slate-500 uppercase">Avg Score</span>
+            </div>
+            <h4 className="text-2xl font-black text-slate-800 dark:text-white">{teamAverage}</h4>
+            <p className="text-[9px] text-slate-400 font-medium">Bulan ini</p>
+          </div>
+
+          <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm">
+            <div className="flex items-center gap-2 mb-1">
+              <Icon icon="ph:users-three-bold" className="text-blue-500" />
+              <span className="text-[10px] font-bold text-slate-500 uppercase">Evaluated</span>
+            </div>
+            <h4 className="text-2xl font-black text-slate-800 dark:text-white">{completed.length}</h4>
+            <p className="text-[9px] text-slate-400 font-medium">Karyawan</p>
+          </div>
+        </section>
+
+        {/* --- STATISTIK SINGKAT --- */}
+        <section className="bg-violet-600 rounded-xl p-4 text-white shadow-lg shadow-violet-600/20">
+          <div className="flex justify-between items-center mb-3">
+            <h3 className="text-xs font-black uppercase tracking-widest">Team Performance</h3>
+            <Icon icon="ph:info-bold" className="opacity-50" />
+          </div>
+          <div className="space-y-3">
+            <div className="flex justify-between items-center text-xs">
+              <span className="opacity-80">Highest Performer</span>
+              <span className="font-bold">
+                {completed.length > 0 ? "Budi Setiawan" : "-"} {/* Nanti bisa diambil dari logic max score */}
+              </span>
+            </div>
+            <div className="h-px bg-white/10 w-full"></div>
+            <div className="flex justify-between items-center text-xs">
+              <span className="opacity-80">Critical Attention</span>
+              <span className="font-bold text-rose-300">{pending.length} People</span>
+            </div>
+          </div>
+        </section>
         {/* Gamified Progress Card */}
         <section className="relative overflow-hidden bg-white dark:bg-slate-900 rounded-xl p-5 shadow-sm border border-violet-600/5">
           <div className="absolute -right-8 -top-8 size-32 bg-violet-600/10 rounded-full blur-2xl"></div>
@@ -102,9 +148,9 @@ export default function ManagerAssessmentDashboard() {
                   {progressPercentage === 100 ? "Awesome! All done." : "Keep going! Almost there!"}
                 </p>
               </div>
-              
+
               {/* TOMBOL SHORTCUT KE KATEGORI */}
-              <button 
+              <button
                 onClick={() => navigate('/admin/assessment-categories')}
                 className="bg-violet-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 hover:bg-violet-700 transition-colors shadow-md shadow-violet-600/20 active:scale-95 uppercase tracking-wider"
               >
@@ -122,7 +168,7 @@ export default function ManagerAssessmentDashboard() {
           </div>
 
           <div className="grid grid-cols-1 gap-4">
-            
+
             {/* PENDING CARDS (Belum dinilai) */}
             {pending.map((sub) => (
               <div key={sub.id} className="bg-white dark:bg-slate-900 rounded-xl p-4 border-l-4 border-violet-600 shadow-sm flex items-center justify-between">
@@ -140,7 +186,7 @@ export default function ManagerAssessmentDashboard() {
                   </div>
                 </div>
                 {/* Tombol Ngarah ke Form Nilai */}
-                <button 
+                <button
                   onClick={() => navigate(`/admin/assessments/form/${sub.id}`)}
                   className="flex flex-col items-center gap-1 text-violet-600 hover:scale-105 transition-transform"
                 >
@@ -169,9 +215,9 @@ export default function ManagerAssessmentDashboard() {
                     </div>
                   </div>
                 </div>
-                <button 
-                   onClick={() => navigate(`/admin/assessments/detail/${item.assessment.id}`)}
-                   className="flex flex-col items-center gap-1 text-slate-400 hover:text-violet-500 transition-colors"
+                <button
+                  onClick={() => navigate(`/admin/assessments/detail/${item.assessment.id}`)}
+                  className="flex flex-col items-center gap-1 text-slate-400 hover:text-violet-500 transition-colors"
                 >
                   <div className="size-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
                     <Icon icon="ph:eye-bold" className="text-xl" />

@@ -18,7 +18,7 @@ const GenerateQR = () => {
   );
 
   const [qrToken, setQrToken] = useState(null);
-  const [timeLeft, setTimeLeft] = useState(30);
+  const [timeLeft, setTimeLeft] = useState(10);
   const timerRef = useRef(null);
 
   // --- LOGIC 1: Fetch Semua Kantor ---
@@ -45,7 +45,7 @@ const GenerateQR = () => {
     },
     onSuccess: (data) => {
       setQrToken(data.qr_string || data.token);
-      setTimeLeft(30);
+      setTimeLeft(10);
     },
     onError: (err) => {
       toast.error(err.response?.data?.message || "Gagal generate QR");
@@ -79,7 +79,7 @@ const GenerateQR = () => {
         setTimeLeft((prev) => {
           if (prev <= 1) {
             handleGenerate();
-            return 30;
+            return 10;
           }
           return prev - 1;
         });
@@ -177,7 +177,7 @@ const GenerateQR = () => {
                   <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
                     <div
                       className={`h-full transition-all duration-1000 ease-linear ${timeLeft < 10 ? "bg-red-500" : "bg-indigo-600"}`}
-                      style={{ width: `${(timeLeft / 30) * 100}%` }}
+                      style={{ width: `${(timeLeft / 10) * 100}%` }}
                     ></div>
                   </div>
                 </div>
