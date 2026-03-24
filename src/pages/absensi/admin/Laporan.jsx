@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import API from "@/store/api/AbsensiService";
+import API from "@/store/api/absensiService";
 import axios from "axios";
 import { Tab } from "@headlessui/react";
 import Icon from "@/components/ui/Icon";
