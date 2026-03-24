@@ -18,7 +18,7 @@ const GenerateQR = () => {
   );
 
   const [qrToken, setQrToken] = useState(null);
-  const [timeLeft, setTimeLeft] = useState(10);
+  const [timeLeft, setTimeLeft] = useState(30);
   const timerRef = useRef(null);
 
   // --- LOGIC 1: Fetch Semua Kantor ---
@@ -45,7 +45,7 @@ const GenerateQR = () => {
     },
     onSuccess: (data) => {
       setQrToken(data.qr_string || data.token);
-      setTimeLeft(10);
+      setTimeLeft(30);
     },
     onError: (err) => {
       toast.error(err.response?.data?.message || "Gagal generate QR");
@@ -79,7 +79,7 @@ const GenerateQR = () => {
         setTimeLeft((prev) => {
           if (prev <= 1) {
             handleGenerate();
-            return 10;
+            return 30;
           }
           return prev - 1;
         });
@@ -176,8 +176,8 @@ const GenerateQR = () => {
                 <div className="w-full max-w-[220px] mb-3">
                   <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
                     <div
-                      className={`h-full transition-all duration-1000 ease-linear ${timeLeft < 10 ? "bg-red-500" : "bg-indigo-600"}`}
-                      style={{ width: `${(timeLeft / 10) * 100}%` }}
+                      className={`h-full transition-all duration-1000 ease-linear ${timeLeft < 30 ? "bg-red-500" : "bg-indigo-600"}`}
+                      style={{ width: `${(timeLeft / 30) * 100}%` }}
                     ></div>
                   </div>
                 </div>
@@ -187,7 +187,7 @@ const GenerateQR = () => {
                     REFRESH DALAM
                   </span>
                   <div
-                    className={`text-3xl font-mono font-black leading-none ${timeLeft < 10 ? "text-red-500 animate-pulse" : "text-slate-800 dark:text-white"}`}
+                    className={`text-3xl font-mono font-black leading-none ${timeLeft < 30 ? "text-red-500 animate-pulse" : "text-slate-800 dark:text-white"}`}
                   >
                     {formatTime(timeLeft)}
                   </div>
