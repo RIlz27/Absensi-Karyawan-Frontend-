@@ -19,8 +19,7 @@ export default defineConfig({
     rollupReplace({
       preventAssignment: true,
       values: {
-        __DEV__: JSON.stringify(true),
-        "process.env.NODE_ENV": JSON.stringify("development"),
+        __DEV__: JSON.stringify(process.env.NODE_ENV !== "production"),
       },
     }),
     react(),
