@@ -1,0 +1,1 @@
+import{N as i}from"./index.0d65ef5a.js";const s=i.injectEndpoints({endpoints:e=>({getLeaderboard:e.query({query:(t=10)=>`/leaderboard?limit=${t}`,providesTags:["Point"]}),adjustPoints:e.mutation({query:({id:t,data:o})=>({url:`/users/${t}/points`,method:"POST",body:o}),invalidatesTags:["Point"]})})}),{useGetLeaderboardQuery:n,useAdjustPointsMutation:r}=s;export{r as a,n as u};

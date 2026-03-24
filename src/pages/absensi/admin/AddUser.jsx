@@ -4,6 +4,7 @@ import { getUsers, createUser, deleteUser, updateUserRole, getKantors } from "@/
 import { toast } from "react-toastify";
 import { Icon } from "@iconify/react";
 import { motion, AnimatePresence } from "framer-motion";
+import Modal from "@/components/ui/Modal";
 
 export default function AddUser() {
   const queryClient = useQueryClient();
@@ -149,7 +150,7 @@ export default function AddUser() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           
           {/* LEFT SIDE: LIST OR DETAILS */}
-          <div className={`space-y-6 ${showAddForm ? "lg:col-span-7" : "lg:col-span-12"}`}>
+          <div className="space-y-6 lg:col-span-12">
             
             {/* USER DETAIL VIEW */}
             <AnimatePresence>
@@ -220,7 +221,7 @@ export default function AddUser() {
             </AnimatePresence>
 
             {/* USER GRID */}
-            <div className={`grid grid-cols-1 ${showAddForm ? "sm:grid-cols-2" : "sm:grid-cols-3 lg:grid-cols-4"} gap-4`}>
+            <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-4">
               {isLoadingUsers ? (
                 Array.from({ length: 6 }).map((_, i) => (
                   <div key={i} className="h-44 bg-white/5 border border-white/5 rounded-[24px] animate-pulse"></div>
@@ -268,22 +269,25 @@ export default function AddUser() {
           </div>
 
           {/* RIGHT SIDE: ADD FORM */}
-          <AnimatePresence>
-            {showAddForm && (
-              <motion.div
-                initial={{ opacity: 0, x: 50 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 50, display: "none" }}
-                transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                className="lg:col-span-5"
-              >
-                <div className="bg-[#111827] border border-white/[0.07] rounded-[32px] p-6 sm:p-8 shadow-2xl sticky top-24">
-                  <div className="mb-6">
-                    <h2 className="text-xl font-bold text-white">Form Registrasi</h2>
-                    <p className="text-slate-400 text-sm mt-1">Tambahkan akun pengguna baru</p>
-                  </div>
+          <Modal
+            activeModal={showAddForm}
+            onClose={() => setShowAddForm(false)}
+            centered
+            isBlur
+            className="max-w-md !bg-[#111827] !border !border-white/[0.07] !rounded-[32px] !p-0 overflow-hidden"
+          >
+            <div className="p-6 sm:p-8">
+              <div className="mb-6">
+                <div className="flex justify-between items-start">
+                  <h2 className="text-xl font-bold text-white">Form Registrasi</h2>
+                  <button type="button" onClick={() => setShowAddForm(false)} className="text-slate-400 hover:text-white p-1">
+                    <Icon icon="ph:x-bold" className="text-xl" />
+                  </button>
+                </div>
+                <p className="text-slate-400 text-sm mt-1">Tambahkan akun pengguna baru</p>
+              </div>
 
-                  <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
                       <label className={labelClass}>Nama Lengkap</label>
                       <input
@@ -358,10 +362,8 @@ export default function AddUser() {
                       )}
                     </button>
                   </form>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+            </div>
+          </Modal>
 
         </div>
       </div>
