@@ -145,9 +145,13 @@ const Scanner = () => {
       },
       (err) => {
         setIsProcessing(false);
-        setStatus({ type: "error", msg: "Izin GPS diperlukan!" });
+        let errorMsg = "Gagal mengambil lokasi GPS.";
+        if (err.code === 1) errorMsg = "Izin akses Lokasi ditolak oleh browser (Coba cek gembok URL/Pengaturan).";
+        else if (err.code === 2) errorMsg = "Sinyal GPS tidak ditemukan. Pastikan GPS menyala.";
+        else if (err.code === 3) errorMsg = "Pencarian lokasi habis waktu (Timeout). Coba di area terbuka.";
+        setStatus({ type: "error", msg: errorMsg });
       },
-      { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
+      { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 }
     );
   };
 
@@ -223,9 +227,13 @@ const Scanner = () => {
                  processingRef.current = false; 
                  setIsProcessing(false);
                  try { scanner.resume(); } catch (e) {}
-                 setStatus({ type: "error", msg: "Izin GPS diperlukan!" });
+                 let errorMsg = "Gagal mengambil lokasi GPS.";
+                 if (err.code === 1) errorMsg = "Izin akses Lokasi ditolak oleh browser (Coba cek gembok URL/Pengaturan).";
+                 else if (err.code === 2) errorMsg = "Sinyal GPS tidak ditemukan. Pastikan GPS menyala.";
+                 else if (err.code === 3) errorMsg = "Pencarian lokasi habis waktu (Timeout). Coba di area terbuka.";
+                 setStatus({ type: "error", msg: errorMsg });
                },
-               { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
+               { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 }
              );
            });
        }, 100);
