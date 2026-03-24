@@ -479,10 +479,9 @@ const ManageShift = () => {
 
         <div className="pt-2">
           <button
-            onClick={() => setShowHariModal(true)}
             className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 rounded-[18px] font-bold text-[15px] tracking-wide text-white shadow-lg active:scale-95 transition-all"
           >
-            Lihat Hari Kerja
+            Pilih Cepat
           </button>
         </div>
       </div>

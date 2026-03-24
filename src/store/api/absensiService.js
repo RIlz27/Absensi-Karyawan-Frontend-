@@ -15,13 +15,13 @@ const API = axios.create({
 
 API.interceptors.request.use(
   (config) => {
-    store.dispatch(startLoading());
+    // store.dispatch(startLoading()); // Disabled global loader
     const token = localStorage.getItem("token");
     if (token) config.headers.Authorization = `Bearer ${token}`;
     return config;
   },
   (error) => {
-    store.dispatch(stopLoading());
+    // store.dispatch(stopLoading());
     return Promise.reject(error);
   }
 );
@@ -29,11 +29,11 @@ API.interceptors.request.use(
 // Response Interceptor: Global Error Handler
 API.interceptors.response.use(
   (response) => {
-    store.dispatch(stopLoading());
+    store.dispatch(stopLoading()); // Keep this just in case, or disable it
     return response;
   },
   (error) => {
-    store.dispatch(stopLoading());
+    store.dispatch(stopLoading()); // Keep this so it clears any stuck loading
     if (error.response?.status === 401) {
       localStorage.clear();
       if (!window.location.pathname.includes("/login")) window.location.href = "/login";

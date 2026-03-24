@@ -147,7 +147,7 @@ const Scanner = () => {
         setIsProcessing(false);
         setStatus({ type: "error", msg: "Izin GPS diperlukan!" });
       },
-      { enableHighAccuracy: true }
+      { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
     );
   };
 
@@ -225,7 +225,7 @@ const Scanner = () => {
                  try { scanner.resume(); } catch (e) {}
                  setStatus({ type: "error", msg: "Izin GPS diperlukan!" });
                },
-               { enableHighAccuracy: true }
+               { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
              );
            });
        }, 100);

@@ -71,26 +71,6 @@ const Kantor = () => {
     );
   };
 
-  const saveMutation = useMutation({
-    mutationFn: async (newData) => {
-      if (editId) return await API.put(`/kantor/${editId}`, newData);
-      return await API.post("/kantor", newData);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries(["kantors"]);
-      toast.success(editId ? "Kantor diupdate!" : "Kantor ditambah!");
-      handleCloseModal();
-    },
-    onError: (err) => {
-      console.log("Error dari Laravel:", err.response?.data);
-
-      if (err.response?.data?.errors) {
-        console.table(err.response.data.errors);
-      }
-
-      toast.error(err.response?.data?.message || "Gagal simpan");
-    },
-  });
 
   const deleteMutation = useMutation({
     mutationFn: async (id) => await API.delete(`/kantor/${id}`),
@@ -157,12 +137,6 @@ const Kantor = () => {
             Kelola titik lokasi absensi karyawan
           </p>
         </div>
-        <Button
-          text="Tambah Lokasi"
-          className="btn-primary"
-          icon="ph:plus-circle-bold"
-          onClick={() => setShowModal(true)}
-        />
       </div>
 
       {/* CARD GRID LAYOUT */}
