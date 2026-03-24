@@ -1,8 +1,14 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { getKantors } from "@/store/api/absensiService.js";
 import { toast } from "react-toastify";
+
+// IMPORT FUNGSI API (Pastikan semua ada di absensiService)
+import {
+  getKantors,
+  getUsers,
+  getAssessments
+} from "@/store/api/absensiService.js";
 
 import Card from "@/components/ui/Card";
 import Icon from "@/components/ui/Icon";
@@ -16,10 +22,38 @@ import RecentOrderTable from "@/components/partials/Table/order-table";
 const Dashboard = () => {
   const navigate = useNavigate();
 
+  // 1. Fetch Data Kantor
   const { data: kantors, isLoading: loadingKantor } = useQuery({
     queryKey: ["kantors"],
     queryFn: getKantors,
   });
+
+  // 2. Fetch Data User (Daftar Karyawan)
+  const { data: users = [] } = useQuery({
+    queryKey: ["users"],
+    queryFn: getUsers,
+  });
+
+  // 3. Fetch Data Absensi (Untuk Statistik)
+  const { data: allAbsensi = [] } = useQuery({
+    queryKey: ["all-absensi"],
+    queryFn: () => getAssessments(),
+  });
+
+  // --- LOGIC STATISTIK DINAMIS ---
+  const todayStr = new Date().toISOString().split('T')[0];
+
+  const totalKaryawan = users.filter(u => u.role === 'karyawan').length;
+
+  const hadirHariIni = allAbsensi.filter(a =>
+    a.tanggal === todayStr && (a.status === 'Hadir' || a.status === 'Terlambat')
+  ).length;
+
+  const terlambatHariIni = allAbsensi.filter(a =>
+    a.tanggal === todayStr && a.status === 'Terlambat'
+  ).length;
+
+  const persentaseHadir = totalKaryawan > 0 ? Math.round((hadirHariIni / totalKaryawan) * 100) : 0;
 
   const handleGenerateClick = () => {
     if (!kantors || kantors.length === 0) {
@@ -27,7 +61,6 @@ const Dashboard = () => {
       navigate("/admin/kantor");
       return;
     }
-
     if (kantors.length === 1) {
       navigate(`/admin/generate-qr?kantor_id=${kantors[0].id}`);
     } else {
@@ -38,44 +71,46 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-6">
-      <div className="grid xl:grid-cols-4 sm:grid-cols-2 grid-cols-1 gap-5">
-        <Card>
-          <div className="flex">
-            <div className="flex-1 text-base font-medium text-slate-600 dark:text-slate-300">
-              Total Karyawan
-            </div>
-            <div className="flex-none">
-              <div className="h-10 w-10 rounded-full bg-indigo-500 text-white text-2xl flex items-center justify-center shadow-lg shadow-indigo-500/30">
-                <Icon icon="ph:users-duotone" />
-              </div>
-            </div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {/* Total Karyawan */}
+        <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm transition-all hover:border-primary/30">
+          <div className="flex items-center justify-between mb-2">
+            <Icon icon="ph:groups-duotone" className="text-2xl text-primary" />
+            <span className="text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded">Aktif</span>
           </div>
-          <div className="mt-4">
-            <span className="text-3xl font-bold text-slate-900 dark:text-white">
-              124
-            </span>
-            <div className="mt-1 text-sm text-slate-500 font-medium">Karyawan Aktif</div>
-          </div>
-        </Card>
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Total Karyawan</p>
+          <p className="text-2xl font-bold dark:text-white">{totalKaryawan.toLocaleString()}</p>
+        </div>
 
-        <Card>
-          <div className="flex">
-            <div className="flex-1 text-base font-medium text-slate-600 dark:text-slate-300">
-              Kehadiran Hari Ini
-            </div>
-            <div className="flex-none">
-              <div className="h-10 w-10 rounded-full bg-emerald-500 text-white text-2xl flex items-center justify-center shadow-lg shadow-emerald-500/30">
-                <Icon icon="ph:check-circle-duotone" />
-              </div>
-            </div>
+        {/* Hadir Hari Ini */}
+        <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm transition-all hover:border-emerald-500/30">
+          <div className="flex items-center justify-between mb-2">
+            <Icon icon="ph:user-check-duotone" className="text-2xl text-emerald-500" />
+            <span className="text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded">{persentaseHadir}%</span>
           </div>
-          <div className="mt-4">
-            <span className="text-3xl font-bold text-slate-900 dark:text-white">
-              85%
-            </span>
-            <div className="mt-1 text-sm text-slate-500 font-medium">Dari total jadwal</div>
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Hadir Hari Ini</p>
+          <p className="text-2xl font-bold dark:text-white">{hadirHariIni}</p>
+        </div>
+
+        {/* Izin / Sakit */}
+        <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm transition-all hover:border-amber-500/30">
+          <div className="flex items-center justify-between mb-2">
+            <Icon icon="ph:clock-afternoon-duotone" className="text-2xl text-amber-500" />
+            <span className="text-[10px] font-bold text-slate-400 bg-slate-400/10 px-1.5 py-0.5 rounded">Normal</span>
           </div>
-        </Card>
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Izin / Sakit</p>
+          <p className="text-2xl font-bold dark:text-white">0</p>
+        </div>
+
+        {/* Terlambat */}
+        <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm transition-all hover:border-red-500/30">
+          <div className="flex items-center justify-between mb-2">
+            <Icon icon="ph:user-minus-duotone" className="text-2xl text-red-500" />
+            <span className="text-[10px] font-bold text-red-500 bg-red-500/10 px-1.5 py-0.5 rounded">Alert</span>
+          </div>
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Terlambat</p>
+          <p className="text-2xl font-bold dark:text-white">{terlambatHariIni}</p>
+        </div>
       </div>
 
       <div className="grid grid-cols-12 gap-5">
@@ -86,7 +121,7 @@ const Dashboard = () => {
             className="bg-slate-50 dark:bg-slate-800 h-full"
           >
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              
+
               {/* 1. MANAJEMEN KANTOR */}
               <div className="p-5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 flex flex-col h-full hover:shadow-md transition-shadow">
                 <div className="flex items-center gap-3 mb-3">
@@ -195,7 +230,7 @@ const Dashboard = () => {
               {/* 6. MONITORING KALENDER */}
               <div className="p-5 border border-slate-200 dark:border-slate-700 rounded-xl bg-gradient-to-br from-indigo-50 to-white dark:from-indigo-900/10 dark:to-slate-900 flex flex-col h-full hover:shadow-md transition-shadow relative overflow-hidden">
                 <div className="absolute top-0 right-0 p-2 text-indigo-200 dark:text-indigo-500/10 text-6xl rotate-12">
-                   <Icon icon="ph:calendar-star-duotone" />
+                  <Icon icon="ph:calendar-star-duotone" />
                 </div>
                 <div className="flex items-center gap-3 mb-3 relative z-10">
                   <div className="h-10 w-10 bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 rounded-lg flex items-center justify-center shadow-lg shadow-indigo-500/20">
@@ -216,8 +251,8 @@ const Dashboard = () => {
                 </div>
               </div>
 
-               {/* 7. LEADERBOARD */}
-               {/* <div className="p-5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 flex flex-col h-full hover:shadow-md transition-shadow">
+              {/* 7. LEADERBOARD */}
+              {/* <div className="p-5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 flex flex-col h-full hover:shadow-md transition-shadow">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="h-10 w-10 bg-yellow-100 dark:bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 rounded-lg flex items-center justify-center">
                     <Icon icon="ph:medal-military-duotone" className="text-2xl" />
@@ -236,9 +271,9 @@ const Dashboard = () => {
                   </Link>
                 </div>
               </div> */}
- 
-               {/* 7. LEADERBOARD */}
-               <div className="p-5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 flex flex-col h-full hover:shadow-md transition-shadow">
+
+              {/* 7. LEADERBOARD */}
+              <div className="p-5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 flex flex-col h-full hover:shadow-md transition-shadow">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="h-10 w-10 bg-yellow-100 dark:bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 rounded-lg flex items-center justify-center">
                     <Icon icon="ph:medal-military-duotone" className="text-2xl" />
@@ -258,8 +293,8 @@ const Dashboard = () => {
                 </div>
               </div>
 
-               {/* 8. PENGUMUMAN */}
-               <div className="p-5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 flex flex-col h-full hover:shadow-md transition-shadow">
+              {/* 8. PENGUMUMAN */}
+              <div className="p-5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 flex flex-col h-full hover:shadow-md transition-shadow">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="h-10 w-10 bg-fuchsia-100 dark:bg-fuchsia-500/20 text-fuchsia-600 dark:text-fuchsia-400 rounded-lg flex items-center justify-center">
                     <Icon icon="ph:megaphone-duotone" className="text-2xl" />
@@ -279,30 +314,6 @@ const Dashboard = () => {
                 </div>
               </div>
 
-            </div>
-          </Card>
-        </div>
-
-        <div className="xl:col-span-4 col-span-12">
-          <Card
-            title="Presensi Mandiri"
-            className="bg-emerald-50 dark:bg-emerald-900/10 h-full border border-emerald-100 dark:border-emerald-500/20"
-          >
-            <div className="flex flex-col items-center justify-center text-center py-8 h-full">
-              <div className="h-20 w-20 bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center mb-5 ring-4 ring-emerald-50 dark:ring-emerald-900/30">
-                <Icon icon="ph:camera-duotone" className="text-4xl animate-bounce" />
-              </div>
-              <h5 className="text-lg font-bold mb-2 text-slate-800 dark:text-white">Scan Kehadiran</h5>
-              <p className="text-sm text-slate-500 mb-8 max-w-[200px]">
-                Pastikan GPS aktif & Anda berada di dalam radius area kantor.
-              </p>
-              <Link to="/user/scanner" className="w-full">
-                <Button
-                  text="Scan QR Sekarang"
-                  className="bg-emerald-600 hover:bg-emerald-700 w-full text-white py-3 rounded-xl shadow-lg shadow-emerald-500/30 font-bold"
-                  icon="ph:scan-bold"
-                />
-              </Link>
             </div>
           </Card>
         </div>
