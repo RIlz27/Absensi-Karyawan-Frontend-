@@ -358,7 +358,7 @@ const UserProfile = () => {
               )}
             </div>
 
-            <p className="text-xs text-center text-slate-400 mt-3">Gunakan jari atau mouse untuk menggeser kotak pemotong area wajah yang diinginkan.</p>
+            <p className="text-xs text-center text-slate-400 mt-3">Crop Image.</p>
 
             <div className="grid grid-cols-2 gap-3 mt-5">
               <button
