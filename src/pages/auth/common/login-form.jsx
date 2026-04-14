@@ -6,8 +6,8 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { useNavigate } from "react-router-dom";
-import Checkbox from "@/components/ui/Checkbox";
-import { Link } from "react-router-dom";
+// import Checkbox from "@/components/ui/Checkbox"; // Kalo ga dipake, mending dicomment aja
+// import { Link } from "react-router-dom"; // Kalo ga dipake, mending dicomment aja
 import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
 import { useLoginMutation } from "@/store/api/auth/authApiSlice";
@@ -28,6 +28,9 @@ const LoginForm = () => {
   const [login, { isLoading }] = useLoginMutation();
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  // STATE BARU BUAT SHOW/HIDE PASSWORD
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -66,10 +69,8 @@ const LoginForm = () => {
     }
   };
 
-  const [checked, setChecked] = useState(false);
-
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 ">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <InputGroup
         name="nip"
         type="text"
@@ -86,9 +87,23 @@ const LoginForm = () => {
       <InputGroup
         name="password"
         label="Password"
-        type="password"
+        // LOGIC TIPE INPUT: Kalo showPassword true, jadi 'text', kalo false jadi 'password'
+        type={showPassword ? "text" : "password"}
         placeholder="Password"
         prepend={<Icon icon="ph:lock-simple" />}
+        // TAMBAHIN TOMBOL MATA DI KANAN
+        append={
+          <button
+            type="button" // Wajib type="button" biar ga ga sengaja ke-submit formnya
+            onClick={() => setShowPassword(!showPassword)}
+            className="text-slate-400 hover:text-primary transition-colors flex items-center justify-center p-1"
+          >
+            <Icon 
+              icon={showPassword ? "ph:eye-slash-duotone" : "ph:eye-duotone"} 
+              className="text-xl" 
+            />
+          </button>
+        }
         defaultValue="airil0895"
         register={register}
         error={errors.password}
@@ -99,7 +114,7 @@ const LoginForm = () => {
       <Button
         type="submit"
         text="Masuk"
-        className="btn btn-primary block w-full text-center "
+        className="btn btn-primary block w-full text-center"
         isLoading={isLoading}
       />
     </form>

@@ -11,8 +11,11 @@ import {
 } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
+
+// Fix icon marker leaflet
 import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
+
 let DefaultIcon = L.icon({
   iconUrl: markerIcon,
   shadowUrl: markerShadow,
@@ -20,14 +23,19 @@ let DefaultIcon = L.icon({
   iconAnchor: [12, 41],
 });
 L.Marker.prototype.options.icon = DefaultIcon;
+
+// Dashcode Components
+import Card from "@/components/ui/Card";
 import Icon from "@/components/ui/Icon";
 import Button from "@/components/ui/Button";
-import API, { getKantors } from "@/store/api/absensiService.js";
+import API, { getKantors } from "@/store/api/absensiService";
 import { toast } from "react-toastify";
 
+// Komponen helper untuk geser kamera tanpa refresh map
 function ChangeView({ center, zoom }) {
   const map = useMap();
-  map.setView(center, map.getZoom());
+  // useFlyTo biar ada animasi smooth pas pindah, atau setView biar instan
+  map.setView(center, map.getZoom()); // map.getZoom() ngejaga zoom lo tetep di posisi terakhir
   return null;
 }
 
@@ -43,16 +51,17 @@ const Kantor = () => {
     latitude: -6.175392,
     longitude: 106.827153,
     radius_meter: 100,
-    toleransi_menit: 15,
   };
 
   const [formData, setFormData] = useState(initialForm);
 
+  // --- LOGIC: FETCH DATA ---
   const { data: kantors, isLoading } = useQuery({
     queryKey: ["kantors"],
     queryFn: getKantors,
   });
 
+  // --- LOGIC: AUTO DETECT LOCATION ---
   const handleGetLocation = () => {
     if (!navigator.geolocation) return toast.error("GPS tidak didukung!");
     toast.info("Mendeteksi lokasi...");
@@ -70,6 +79,30 @@ const Kantor = () => {
     );
   };
 
+  // --- LOGIC: SAVE (ADD/EDIT) ---
+  const saveMutation = useMutation({
+    mutationFn: async (newData) => {
+      if (editId) return await API.put(`/kantor/${editId}`, newData);
+      return await API.post("/kantor", newData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(["kantors"]);
+      toast.success(editId ? "Kantor diupdate!" : "Kantor ditambah!");
+      handleCloseModal();
+    },
+    onError: (err) =>
+      toast.error(err.response?.data?.message || "Gagal simpan"),
+  });
+
+  // --- LOGIC: DELETE ---
+  const deleteMutation = useMutation({
+    mutationFn: async (id) => await API.delete(`/kantor/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries(["kantors"]);
+      toast.success("Kantor dihapus!");
+    },
+  });
+
   const handleEdit = (item) => {
     setEditId(item.id);
     setFormData({
@@ -78,7 +111,6 @@ const Kantor = () => {
       latitude: item.latitude,
       longitude: item.longitude,
       radius_meter: item.radius_meter,
-      toleransi_menit: item.toleransi_menit || 15,
     });
     setShowModal(true);
   };
@@ -88,32 +120,6 @@ const Kantor = () => {
     setEditId(null);
     setFormData(initialForm);
   };
-
-  const saveMutation = useMutation({
-    mutationFn: async (data) => {
-      if (editId) {
-        return await API.put(`/kantor/${editId}`, data);
-      } else {
-        return await API.post("/kantor", data);
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["kantors"] });
-      toast.success(editId ? "Kantor diperbarui!" : "Kantor ditambahkan!");
-      handleCloseModal();
-    },
-    onError: () => {
-      toast.error("Gagal menyimpan kantor!");
-    },
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: async (id) => await API.delete(`/kantor/${id}`),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["kantors"] });
-      toast.success("Kantor dihapus!");
-    },
-  });
 
   const neonIcon = L.divIcon({
     html: `
@@ -154,14 +160,10 @@ const Kantor = () => {
           </p>
         </div>
         <Button
-          text="Tambah Kantor"
+          text="Tambah Lokasi"
           className="btn-primary"
-          icon="ph:plus-bold"
-          onClick={() => {
-            setEditId(null);
-            setFormData(initialForm);
-            setShowModal(true);
-          }}
+          icon="ph:plus-circle-bold"
+          onClick={() => setShowModal(true)}
         />
       </div>
 
@@ -238,24 +240,30 @@ const Kantor = () => {
       {/* MODAL (ADD & EDIT) */}
       {showModal && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center bg-slate-900/70 backdrop-blur-sm p-4">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-5xl flex flex-col md:flex-row max-h-[90vh] animate-slide-up overflow-y-auto overflow-x-hidden">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-5xl flex flex-col md:flex-row overflow-hidden animate-slide-up">
             {/* MAP SIDE */}
-            <div className="w-full md:w-3/5 h-[200px] md:h-[550px] relative bg-slate-900 flex-shrink-0">
+            <div className="w-full md:w-3/5 h-[300px] md:h-[550px] relative bg-slate-900 overflow-hidden rounded-l-2xl">
               <MapContainer
+                // key={...}  <-- HAPUS INI BRO, ini biang kerok auto zoom out-nya
                 center={[formData.latitude, formData.longitude]}
                 zoom={16}
                 style={{ height: "100%", width: "100%" }}
                 zoomControl={false}
               >
+                {/* Biar map pindah posisi tanpa reset zoom/reload tile */}
                 <ChangeView center={[formData.latitude, formData.longitude]} />
+
+                {/* Balikin URL ke Dark Mode biar gak putih (tadi di kode lo balik ke osm standar) */}
                 <TileLayer
                   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                   attribution="&copy; CARTO"
                 />
+
                 <Marker
                   position={[formData.latitude, formData.longitude]}
                   icon={neonIcon}
                 />
+
                 <Circle
                   center={[formData.latitude, formData.longitude]}
                   radius={parseInt(formData.radius_meter) || 0}
@@ -267,9 +275,11 @@ const Kantor = () => {
                     dashArray: "5, 10",
                   }}
                 />
+
                 <MapClickHandler />
               </MapContainer>
 
+              {/* Tombol GPS SAYA - Dark Version */}
               <button
                 type="button"
                 onClick={handleGetLocation}
@@ -279,10 +289,16 @@ const Kantor = () => {
                   icon="ph:navigation-arrow-fill"
                   className="text-lg animate-pulse"
                 />
-                Lokasi Saya
+                GPS SAYA
               </button>
+
+              {/* Info Box Kecil buat Petunjuk */}
+              <div className="absolute bottom-4 left-4 z-[1000] bg-slate-900/80 backdrop-blur-sm px-3 py-1.5 rounded-lg border border-slate-700 text-[10px] text-slate-400 font-medium">
+                Klik pada peta untuk menyesuaikan lokasi
+              </div>
             </div>
 
+            {/* FORM SIDE */}
             <div className="w-full md:w-2/5 p-8 overflow-y-auto">
               <div className="flex justify-between items-center mb-6">
                 <h5 className="text-2xl font-black">
@@ -375,24 +391,6 @@ const Kantor = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, radius_meter: e.target.value })
                     }
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-1 text-indigo-300">
-                    Toleransi Keterlambatan (Menit)
-                  </label>
-                  <input
-                    type="number"
-                    className="w-full rounded bg-slate-700 p-2 text-white border border-indigo-500/30 focus:border-indigo-500 outline-none"
-                    value={formData.toleransi_menit}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        toleransi_menit: e.target.value,
-                      })
-                    }
-                    placeholder="Contoh: 15"
                   />
                 </div>
 
