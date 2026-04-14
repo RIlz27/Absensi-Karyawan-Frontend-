@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getUsers, createUser, deleteUser, updateUserRole, getKantors } from "@/store/api/absensiService.js";
+import { getUsers, createUser, deleteUser, updateUserRole, getKantors, updateUser } from "@/store/api/absensiService.js";
 import { toast } from "react-toastify";
 import { Icon } from "@iconify/react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -69,6 +69,20 @@ export default function AddUser() {
     }
   });
 
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }) => updateUser(id, data),
+    onSuccess: (res) => {
+      toast.success(res.message || "Penempatan berhasil diubah!");
+      queryClient.invalidateQueries(["fetch-users"]);
+      if (selectedUser) {
+        setSelectedUser({ ...selectedUser, ...res.user });
+      }
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || "Gagal mengubah penempatan");
+    }
+  });
+
   // Handlers
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -88,6 +102,12 @@ export default function AddUser() {
   const handleRoleChange = (userId, newRole) => {
     if (window.confirm(`Yakin ingin mengubah role karyawan menjadi ${newRole.toUpperCase()}?`)) {
       roleUpdateMutation.mutate({ id: userId, role: newRole });
+    }
+  };
+
+  const handleKantorChange = (userId, newKantorId) => {
+    if (window.confirm("Yakin ingin mengubah penempatan kantor karyawan ini?")) {
+      updateMutation.mutate({ id: userId, data: { kantor_id: newKantorId } });
     }
   };
 
@@ -204,6 +224,20 @@ export default function AddUser() {
                           <option value="admin" className="text-slate-800 bg-white">ADMIN</option>
                         </select>
                         
+                        <div className="w-px h-6 bg-white/10 mx-1"></div>
+
+                        <select
+                          className={`text-[11px] font-bold uppercase tracking-wider rounded-xl px-3 py-1.5 outline-none cursor-pointer border-none appearance-none pr-8 bg-no-repeat bg-[url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-down-fill text-white" viewBox="0 0 16 16"><path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/></svg>')] bg-[length:10px_10px] bg-[position:right_8px_center] transition-colors bg-teal-500/20 text-teal-400 hover:bg-teal-500/30`}
+                          value={selectedUser.kantor_id || ""}
+                          onChange={(e) => handleKantorChange(selectedUser.id, e.target.value)}
+                          disabled={updateMutation.isPending}
+                        >
+                          <option value="" className="text-slate-800 bg-white" disabled>TANPA KANTOR</option>
+                          {kantors.map((k) => (
+                            <option key={k.id} value={k.id} className="text-slate-800 bg-white">{k.nama_kantor}</option>
+                          ))}
+                        </select>
+
                         <div className="w-px h-6 bg-white/10 mx-1"></div>
 
                         <button
