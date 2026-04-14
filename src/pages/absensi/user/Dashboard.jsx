@@ -422,7 +422,7 @@ const UserDashboard = () => {
                 </h4>
                 <p className="text-[12px] font-medium text-slate-500">
                   {shiftToday
-                    ? `${shiftToday.jam_masuk?.substring(0, 5) || "--:--"} - ${shiftToday.jam_keluar?.substring(0, 5) || "--:--"}`
+                    ? `${shiftToday.jam_masuk?.substring(0, 5) || "--:--"} - ${shiftToday.jam_pulang?.substring(0, 5) || "--:--"}`
                     : "Libur / Off"}
                 </p>
               </div>

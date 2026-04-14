@@ -240,7 +240,7 @@ const Kantor = () => {
       {/* MODAL (ADD & EDIT) */}
       {showModal && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center bg-slate-900/70 backdrop-blur-sm p-4">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-5xl flex flex-col md:flex-row overflow-hidden animate-slide-up">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-5xl flex flex-col md:flex-row max-h-[90vh] overflow-y-auto md:overflow-hidden animate-slide-up">
             {/* MAP SIDE */}
             <div className="w-full md:w-3/5 h-[300px] md:h-[550px] relative bg-slate-900 overflow-hidden rounded-l-2xl">
               <MapContainer
