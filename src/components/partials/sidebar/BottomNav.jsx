@@ -24,7 +24,6 @@ const BottomNav = () => {
   const KaryawanMenu = [
   { name: "Home", path: "/user/dashboard", icon: LayoutDashboard },
   { name: "Penilaian", path: "/user/my-assessment", icon: ClipboardCheck }, 
-  { name: "Scan", path: "/user/scanner", icon: ScanLine },
   { name: "Stats", path: "/user/statistik", icon: BarChart3 },
   { name: "Profile", path: "/user/profile", icon: UserCircle },
 ];
