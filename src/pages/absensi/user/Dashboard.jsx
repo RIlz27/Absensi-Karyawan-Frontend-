@@ -21,6 +21,7 @@ const UserDashboard = () => {
   });
   const [weeklyStatus, setWeeklyStatus] = useState([]);
   const [shiftToday, setShiftToday] = useState(null);
+  const [meDebugInfo, setMeDebugInfo] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -115,6 +116,14 @@ const UserDashboard = () => {
         // Compute Weekly Status & Shift Today
         const meRes = await API.get("/me");
         const userShifts = meRes.data.shifts || [];
+
+        let debugText = "User Shifts Kosong/Gagal";
+        if (userShifts.length > 0) {
+          debugText = `${userShifts.length} shifts. Hari: ${userShifts.map(s => s.pivot?.hari).join(",")}`;
+        } else {
+          debugText = "Belum di-assign atau null";
+        }
+        setMeDebugInfo(debugText);
 
         // Find Today's Shift
         const currentEnglishDay = now.toLocaleDateString("en-US", {
@@ -424,6 +433,10 @@ const UserDashboard = () => {
                   {shiftToday
                     ? `${shiftToday.jam_masuk?.substring(0, 5) || "--:--"} - ${shiftToday.jam_pulang?.substring(0, 5) || "--:--"}`
                     : "Libur / Off"}
+                </p>
+                {/* DEBUG INFO */}
+                <p className="text-[9px] font-mono text-rose-500 mt-1 max-w-[150px] truncate break-all">
+                  Debug: {meDebugInfo || "Loading shifts..."}
                 </p>
               </div>
             </div>

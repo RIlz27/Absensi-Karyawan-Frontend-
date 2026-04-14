@@ -41,6 +41,8 @@ const AssessmentForm = lazy(
   () => import("./pages/absensi/admin/AssessmentForm.jsx"),
 );
 
+const RiwayatAbsen = lazy(() => import("./pages/absensi/user/RiwayatAbsen.jsx"));
+
 const ManagerAssessmentDashboard = lazy(
   () => import("./pages/absensi/admin/ManagerAssessmentDashboard.jsx"),
 );
@@ -138,6 +140,7 @@ function App() {
           <Route path="user/pengajuan" element={<Pengajuan />} />
           <Route path="user/point" element={<Point />} />
           <Route path="user/profile" element={<Profile />} />
+          <Route path="user/riwayat" element={<RiwayatAbsen />} />
           <Route
             path="admin/assessments"
             element={<ManagerAssessmentDashboard />}

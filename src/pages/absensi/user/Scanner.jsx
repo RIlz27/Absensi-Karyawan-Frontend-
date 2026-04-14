@@ -249,6 +249,18 @@ const Scanner = () => {
     };
   }, [session, canCheckout, cameraMode]); 
 
+  const getDisplayTime = (timeStr) => {
+    if (!timeStr) return "-";
+    if (timeStr.includes(" ")) return timeStr.split(" ")[1].substring(0, 5);
+    try {
+      const d = new Date(timeStr);
+      if (isNaN(d.getTime())) return "-";
+      return d.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }).replace(".", ":");
+    } catch(e) {
+      return "-";
+    }
+  };
+
   return (
     <Card title="Karyawan - Scan QR Absensi">
       <div className="max-w-md mx-auto relative">
@@ -330,38 +342,52 @@ const Scanner = () => {
 
         {/* --- BOTTOM SHEET MODAL --- */}
         {showSuccessModal && (
-          <div className="fixed inset-0 z-[999] flex items-end justify-center bg-black/60 transition-opacity duration-300">
-            <div className="w-full max-w-md transform rounded-t-[32px] bg-white p-6 pb-10 shadow-2xl transition-transform duration-500 translate-y-0 animate-in slide-in-from-bottom-full">
+          <div className="fixed inset-0 z-[999] flex items-end justify-center bg-black/60 transition-opacity duration-300 backdrop-blur-sm">
+            <div className="w-full max-w-md transform rounded-t-[32px] bg-white dark:bg-slate-900 p-6 pb-10 shadow-2xl transition-transform duration-500 translate-y-0 animate-in slide-in-from-bottom-full border-t border-white/10">
               
-              <div className="mx-auto mb-6 h-1.5 w-12 rounded-full bg-slate-300"></div>
+              <div className="mx-auto mb-6 h-1.5 w-12 rounded-full bg-slate-300 dark:bg-slate-700"></div>
 
               <div className="text-center">
-                <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
-                  <svg className="h-10 w-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-green-100 dark:bg-green-500/10">
+                  <svg className="h-10 w-10 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
 
-                <h3 className="text-2xl font-bold text-slate-800">Berhasil Absen!</h3>
-                <p className="mt-2 text-slate-600">
-                  Status: <span className="font-bold text-green-600">{absensiData?.status}</span>
+                <h3 className="text-2xl font-bold text-slate-800 dark:text-white">Berhasil Absen!</h3>
+                <p className="mt-2 text-slate-600 dark:text-slate-400 flex items-center justify-center gap-2">
+                  Status: <span className="font-bold px-2 py-0.5 bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400 rounded-lg text-sm">{absensiData?.status}</span>
                 </p>
                 
-                <div className="mt-4 rounded-xl bg-slate-50 p-4 text-sm text-slate-500">
-                  <p>Jam: <span className="font-medium text-slate-800">
-                    {absensiData?.jam_pulang ? absensiData?.jam_pulang?.split(' ')[1] : absensiData?.jam_masuk?.split(' ')[1] || '-'}
-                  </span></p>
-                  <p>Tanggal: <span className="font-medium text-slate-800">{absensiData?.tanggal}</span></p>
+                <div className="mt-6 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/50 p-5 text-sm">
+                  <div className="flex justify-between items-center mb-3">
+                    <span className="text-slate-500 dark:text-slate-400 font-medium">Jam</span>
+                    <span className="font-bold text-slate-800 dark:text-white text-lg">
+                      {getDisplayTime(absensiData?.jam_pulang || absensiData?.jam_masuk)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center pt-3 border-t border-slate-200 dark:border-slate-700/50">
+                    <span className="text-slate-500 dark:text-slate-400 font-medium">Tanggal</span>
+                    <span className="font-semibold text-slate-800 dark:text-white">{absensiData?.tanggal || "-"}</span>
+                  </div>
                 </div>
 
                 <div className="mt-8 flex flex-col gap-3">
                   <button
                     onClick={() => {
                         setShowSuccessModal(false);
-                        // Navigate to Dashboard instead of Laporan for UX flow
+                        navigate("/user/riwayat"); 
+                    }}
+                    className="w-full rounded-2xl bg-indigo-600 hover:bg-indigo-500 py-4 font-bold text-white shadow-[0_8px_30px_rgb(79,70,229,0.3)] hover:shadow-[0_8px_30px_rgb(79,70,229,0.4)] active:scale-95 transition-all text-[15px]"
+                  >
+                    Lihat Riwayat Absen
+                  </button>
+                  <button
+                    onClick={() => {
+                        setShowSuccessModal(false);
                         navigate("/user/dashboard"); 
                     }}
-                    className="w-full rounded-2xl bg-indigo-600 py-4 font-bold text-white shadow-lg shadow-indigo-200 active:scale-95 transition-all"
+                    className="w-full rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 py-4 font-bold text-slate-700 dark:text-slate-300 active:scale-95 transition-all text-[15px]"
                   >
                     Kembali ke Beranda
                   </button>
