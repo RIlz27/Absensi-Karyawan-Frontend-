@@ -291,7 +291,10 @@ const UserDashboard = () => {
                 </p>
               </div>
             </div>
-            <button className="text-indigo-600 dark:text-indigo-300 text-[11px] font-bold bg-indigo-50 dark:bg-indigo-900/40 px-3 py-2 rounded-xl">
+            <button 
+              onClick={() => navigate("/user/riwayat")}
+              className="text-indigo-600 dark:text-indigo-300 text-[11px] font-bold bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-900/40 dark:hover:bg-indigo-900/60 px-3 py-2 rounded-xl transition-colors active:scale-95"
+            >
               Lihat Riwayat
             </button>
           </div>
