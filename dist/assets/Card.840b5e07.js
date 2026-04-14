@@ -1,0 +1,3 @@
+import{j as d,d as a}from"./index.eb651a67.js";const N=({children:e,title:s,subtitle:c,headerslot:r,className:l="custom-class",bodyClass:m="px-5 py-4",noborder:i,titleClass:n="custom-class",headerClass:o="custom-header-class"})=>d("div",{className:`card
+    ${l}
+        `,children:[(s||c)&&d("header",{className:`card-header ${i?"no-border":""} ${o}`,children:[d("div",{children:[s&&a("div",{className:`card-title ${n}`,children:s}),c&&a("div",{className:"card-subtitle",children:c})]}),r&&a("div",{className:"card-header-slot",children:r})]}),a("main",{className:`card-body ${m}`,children:e})]});export{N as C};

@@ -1,0 +1,15 @@
+import{r as q,j as o,d as e,I as f,J as P}from"./index.eb651a67.js";import{C as b}from"./cleave-phone.us.b1762649.js";const R=({type:s,label:l,placeholder:a,classLabel:k="form-label",className:p="",classGroup:U="",register:N,name:n,readonly:u,value:A,error:t,icon:E,disabled:x,id:i,horizontal:h,validate:r,isMask:d,description:v,hasicon:j,onChange:m,merged:I,append:$,prepend:g,options:w,onFocus:y,...O})=>{const[c,S]=q.exports.useState(!1),G=()=>{S(!c)};return o("div",{className:`  ${h?"flex":""} 
+      ${I?"merged":""}  `,children:[l&&e("label",{htmlFor:i,className:`block capitalize ${k}  ${h?"flex-0 mr-6 md:w-[100px] w-[60px] break-words":""}`,children:l}),o("div",{className:`flex items-stretch inputGroup 
+      
+        
+    ${$?"has-append":""}
+    ${g?"has-prepend":""}
+
+    ${t?"is-invalid":""}  ${r?"is-valid":""}
+    
+   
+    ${h?"flex-1":""}
+      `,children:[g&&e("span",{className:"flex-none input-group-addon",children:e("div",{className:"input-group-text  h-full prepend-slot",children:g})}),e("div",{className:"flex-1",children:o("div",{className:`relative textfiled-wrapper2
+          ${t?"is-error":""} 
+           ${r?"is-valid":""}
+          `,children:[n&&!d&&e("input",{type:s==="password"&&c===!0?"text":s,...N(n),...O,className:`${t?" is-error":" "} input-group-control block w-full focus:outline-none py-[10px] ${p}  `,placeholder:a,readOnly:u,disabled:x,id:i,onChange:m}),!n&&!d&&e("input",{type:s==="password"&&c===!0?"text":s,className:`input-group-control block w-full focus:outline-none py-[10px] ${p}`,placeholder:a,readOnly:u,disabled:x,onChange:m,id:i}),n&&d&&e(b,{...N(n),...O,placeholder:a,options:w,className:`${t?" is-error":" "} input-group-control w-full py-[10px] ${p}  `,onFocus:y,id:i,readOnly:u,disabled:x,onChange:m}),!n&&d&&e(b,{placeholder:a,options:w,className:`${t?" is-error":" "} input-group-control w-full py-[10px] ${p}  `,onFocus:y,id:i,readOnly:u,disabled:x,onChange:m}),o("div",{className:"flex text-xl absolute ltr:right-[14px] rtl:left-[14px] top-1/2 -translate-y-1/2  space-x-1 rtl:space-x-reverse",children:[j&&o("span",{className:"cursor-pointer text-gray-400",onClick:G,children:[c&&s==="password"&&e(f,{icon:"heroicons-outline:eye"}),!c&&s==="password"&&e(f,{icon:"heroicons-outline:eye-off"})]}),t&&e("span",{className:"text-red-500",children:e(f,{icon:"ph:info-fill"})}),r&&e("span",{className:"text-green-500",children:e(f,{icon:"ph:check-circle-fill"})})]})]})}),$&&e("span",{className:"flex-none input-group-addon right",children:e("div",{className:"input-group-text  h-full append-slot",children:$})})]}),t&&e("div",{className:"mt-2 text-red-500 block text-sm",children:t.message}),r&&e("div",{className:"mt-2 text-green-500 block text-sm",children:r}),v&&e("span",{className:"input-help",children:v})]})},T=P.injectEndpoints({endpoints:s=>({registerUser:s.mutation({query:l=>({url:"register",method:"POST",body:l})}),login:s.mutation({query:l=>({url:"/login",method:"POST",body:l})})})}),{useRegisterUserMutation:B,useLoginMutation:C}=T;export{R as I,B as a,C as u};
