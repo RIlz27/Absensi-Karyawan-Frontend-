@@ -202,7 +202,7 @@ export default function AddUser() {
                       <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mt-2 mb-4">
                         <span className="px-2.5 py-1 bg-white/5 border border-white/10 rounded-lg text-xs font-mono text-slate-300">NIP: {selectedUser.nip}</span>
                         <span className="px-2.5 py-1 bg-white/5 border border-white/10 rounded-lg text-xs flex items-center gap-1 text-slate-300">
-                           <Icon icon="ph:buildings" /> {selectedUser.kantor?.nama_kantor || "Tanpa Kantor"}
+                           <Icon icon="ph:buildings" /> {selectedUser.kantor?.nama || "Tanpa Kantor"}
                         </span>
                       </div>
 
@@ -234,7 +234,7 @@ export default function AddUser() {
                         >
                           <option value="" className="text-slate-800 bg-white" disabled>TANPA KANTOR</option>
                           {kantors.map((k) => (
-                            <option key={k.id} value={k.id} className="text-slate-800 bg-white">{k.nama_kantor}</option>
+                            <option key={k.id} value={k.id} className="text-slate-800 bg-white">{k.nama}</option>
                           ))}
                         </select>
 
@@ -371,7 +371,7 @@ export default function AddUser() {
                           <option className="text-slate-800 bg-white" value="" disabled>Pilih Kantor</option>
                           {kantors.map((k) => (
                             <option className="text-slate-800 bg-white" key={k.id} value={k.id}>
-                              {k.nama_kantor}
+                              {k.nama}
                             </option>
                           ))}
                         </select>
