@@ -116,58 +116,68 @@ const Dashboard = () => {
       <div className="grid grid-cols-12 gap-5">
         {/* PANEL ADMIN (Span 8) */}
         <div className="xl:col-span-8 col-span-12">
-            <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-              {/* 1. MANAJEMEN SHIFT */}
-              <Link to="/admin/manage-shift" className="group">
-                <div className="p-4 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-900 flex flex-col items-center justify-center text-center gap-3 hover:border-amber-500 transition-all hover:shadow-md h-full">
-                  <div className="h-12 w-12 bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <Icon icon="ph:calendar-check-duotone" className="text-2xl" />
-                  </div>
-                  <span className="text-xs font-bold dark:text-slate-200">Shift</span>
+          <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+            {/* 1. MANAJEMEN SHIFT */}
+            <Link to="/admin/manage-shift" className="group">
+              <div className="p-4 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-900 flex flex-col items-center justify-center text-center gap-3 hover:border-amber-500 transition-all hover:shadow-md h-full">
+                <div className="h-12 w-12 bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Icon icon="ph:calendar-check-duotone" className="text-2xl" />
                 </div>
-              </Link>
+                <span className="text-xs font-bold dark:text-slate-200">Shift</span>
+              </div>
+            </Link>
 
-              {/* 2. DATA KARYAWAN */}
-              <Link to="/admin/AddUser" className="group">
-                <div className="p-4 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-900 flex flex-col items-center justify-center text-center gap-3 hover:border-rose-500 transition-all hover:shadow-md h-full">
-                  <div className="h-12 w-12 bg-rose-100 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <Icon icon="ph:user-list-duotone" className="text-2xl" />
-                  </div>
-                  <span className="text-xs font-bold dark:text-slate-200">Karyawan</span>
+            {/* 2. DATA KARYAWAN */}
+            <Link to="/admin/AddUser" className="group">
+              <div className="p-4 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-900 flex flex-col items-center justify-center text-center gap-3 hover:border-rose-500 transition-all hover:shadow-md h-full">
+                <div className="h-12 w-12 bg-rose-100 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Icon icon="ph:user-list-duotone" className="text-2xl" />
                 </div>
-              </Link>
+                <span className="text-xs font-bold dark:text-slate-200">Karyawan</span>
+              </div>
+            </Link>
 
-              {/* 3. MONITORING KALENDER */}
-              <Link to="/admin/calendar" className="group">
-                <div className="p-4 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-900 flex flex-col items-center justify-center text-center gap-3 hover:border-indigo-500 transition-all hover:shadow-md h-full">
-                  <div className="h-12 w-12 bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <Icon icon="ph:calendar-star-duotone" className="text-2xl" />
-                  </div>
-                  <span className="text-xs font-bold dark:text-slate-200">Kalender</span>
+            {/* 3. MONITORING KALENDER */}
+            <Link to="/admin/calendar" className="group">
+              <div className="p-4 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-900 flex flex-col items-center justify-center text-center gap-3 hover:border-indigo-500 transition-all hover:shadow-md h-full">
+                <div className="h-12 w-12 bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Icon icon="ph:calendar-star-duotone" className="text-2xl" />
                 </div>
-              </Link>
+                <span className="text-xs font-bold dark:text-slate-200">Kalender</span>
+              </div>
+            </Link>
 
 
-              {/* 5. PENILAIAN */}
-              <Link to="/admin/assessments" className="group">
-                <div className="p-4 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-900 flex flex-col items-center justify-center text-center gap-3 hover:border-primary transition-all hover:shadow-md h-full">
-                  <div className="h-12 w-12 bg-lime-100 dark:bg-lime-500/20 text-lime-600 dark:text-lime-400 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <Icon icon="ph:clipboard-text-duotone" className="text-2xl" />
-                  </div>
-                  <span className="text-xs font-bold dark:text-slate-200">Penilaian</span>
+            {/* 5. PENILAIAN */}
+            <Link to="/admin/assessments" className="group">
+              <div className="p-4 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-900 flex flex-col items-center justify-center text-center gap-3 hover:border-primary transition-all hover:shadow-md h-full">
+                <div className="h-12 w-12 bg-lime-100 dark:bg-lime-500/20 text-lime-600 dark:text-lime-400 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Icon icon="ph:clipboard-text-duotone" className="text-2xl" />
                 </div>
-              </Link>
+                <span className="text-xs font-bold dark:text-slate-200">Penilaian</span>
+              </div>
+            </Link>
 
-              {/* 6. PENGUMUMAN */}
-              <Link to="/admin/pengumuman" className="group">
-                <div className="p-4 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-900 flex flex-col items-center justify-center text-center gap-3 hover:border-fuchsia-500 transition-all hover:shadow-md h-full">
-                  <div className="h-12 w-12 bg-fuchsia-100 dark:bg-fuchsia-500/20 text-fuchsia-600 dark:text-fuchsia-400 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <Icon icon="ph:megaphone-duotone" className="text-2xl" />
-                  </div>
-                  <span className="text-xs font-bold dark:text-slate-200">Broadcast</span>
+            {/* 6. PENGUMUMAN */}
+            <Link to="/admin/pengumuman" className="group">
+              <div className="p-4 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-900 flex flex-col items-center justify-center text-center gap-3 hover:border-fuchsia-500 transition-all hover:shadow-md h-full">
+                <div className="h-12 w-12 bg-fuchsia-100 dark:bg-fuchsia-500/20 text-fuchsia-600 dark:text-fuchsia-400 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Icon icon="ph:megaphone-duotone" className="text-2xl" />
                 </div>
-              </Link>
-            </div>
+                <span className="text-xs font-bold dark:text-slate-200">Broadcast</span>
+              </div>
+            </Link>
+
+            <Link to="/admin/point-rules" className="group">
+              <div className="p-4 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-900 flex flex-col items-center justify-center text-center gap-3 hover:border-fuchsia-500 transition-all hover:shadow-md h-full">
+                <div className="h-12 w-12 bg-fuchsia-100 dark:bg-fuchsia-500/20 text-fuchsia-600 dark:text-fuchsia-400 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Icon icon="ph:star-fill" className="text-2xl" />
+                </div>
+                <span className="text-xs font-bold dark:text-slate-200">Point</span>
+              </div>
+            </Link>
+
+          </div>
         </div>
       </div>
 

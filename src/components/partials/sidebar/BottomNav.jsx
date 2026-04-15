@@ -8,7 +8,8 @@ import {
   ScanLine, 
   BarChart3, 
   UserCircle, 
-  ClipboardCheck 
+  ClipboardCheck,
+  History
 } from "lucide-react";
 
 const BottomNav = () => {
@@ -24,7 +25,7 @@ const BottomNav = () => {
   const KaryawanMenu = [
   { name: "Home", path: "/user/dashboard", icon: LayoutDashboard },
   { name: "Penilaian", path: "/user/my-assessment", icon: ClipboardCheck }, 
-  { name: "Stats", path: "/user/statistik", icon: BarChart3 },
+  { name: "Riwayat", path: "/user/riwayat", icon: History },
   { name: "Profile", path: "/user/profile", icon: UserCircle },
 ];
 

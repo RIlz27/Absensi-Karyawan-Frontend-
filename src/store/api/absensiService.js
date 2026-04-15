@@ -97,4 +97,35 @@ export const deleteQuestion = async (id) =>
   (await API.delete(`/assessment-questions/${id}`)).data;
 
 
+// --- GAMIFICATION (POIN & TOKEN) ---
+export const getPointStatus = async () => (await API.get("/gamification/points")).data;
+
+export const getStoreItems = async () => (await API.get("/gamification/store")).data;
+
+export const buyItem = async (itemId) => (await API.post(`/gamification/buy/${itemId}`)).data;
+
+export const getMyTokens = async () => (await API.get("/gamification/my-tokens")).data;
+
+// ==========================================
+// GAMIFICATION (ADMIN SIDE)
+// ==========================================
+
+// 1. Manajemen Rules
+export const getAdminRules = async () => (await API.get("/admin/gamification/rules")).data;
+export const createAdminRule = async (data) => (await API.post("/admin/gamification/rules", data)).data;
+export const updateAdminRule = async (id, data) => (await API.put(`/admin/gamification/rules/${id}`, data)).data;
+export const deleteAdminRule = async (id) => (await API.delete(`/admin/gamification/rules/${id}`)).data;
+
+// 2. Manajemen Items (Katalog Toko)
+export const getAdminItems = async () => (await API.get("/admin/gamification/items")).data;
+export const createAdminItem = async (data) => (await API.post("/admin/gamification/items", data)).data;
+export const updateAdminItem = async (id, data) => (await API.put(`/admin/gamification/items/${id}`, data)).data;
+export const deleteAdminItem = async (id) => (await API.delete(`/admin/gamification/items/${id}`)).data;
+
+// 3. Audit Trail Poin (Read Only)
+export const getAdminLedgers = async () => (await API.get("/admin/gamification/ledgers")).data;
+
+// 4. Validasi Voucher Karyawan
+export const getAdminTokens = async () => (await API.get("/admin/gamification/tokens")).data;
+export const markTokenUsed = async (id) => (await API.post(`/admin/gamification/tokens/${id}/use`)).data;
 export default API;

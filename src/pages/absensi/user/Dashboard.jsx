@@ -3,6 +3,7 @@ import { Icon } from "@iconify/react";
 import { Link, useNavigate } from "react-router-dom";
 import API from "@/store/api/absensiService.js";
 import { useGetPengumumanUserQuery } from "@/store/api/pengumuman/pengumumanApiSlice";
+import PointBadge from "@/components/pointbadge";
 
 const UserDashboard = () => {
   const navigate = useNavigate();
@@ -365,12 +366,9 @@ const UserDashboard = () => {
                 </p>
               </div>
             </div>
-            <button 
-              onClick={() => navigate("/user/riwayat")}
-              className="text-indigo-600 dark:text-indigo-300 text-[11px] font-bold bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-900/40 dark:hover:bg-indigo-900/60 px-3 py-2 rounded-xl transition-colors active:scale-95"
-            >
-              Lihat Riwayat
-            </button>
+            <div onClick={() => navigate('/user/gamification')} className="inline-block transition-transform active:scale-95">
+              <PointBadge />
+            </div>
           </div>
 
           <div className="mt-8">

@@ -42,6 +42,7 @@ const RiwayatAbsen = lazy(() => import("./pages/absensi/user/RiwayatAbsen.jsx"))
 const ManagerAssessmentDashboard = lazy(
   () => import("./pages/absensi/admin/ManagerAssessmentDashboard.jsx"),
 );
+const GamificationWallet = lazy(() => import("./pages/absensi/user/GamificationWallet.jsx"));
 const AssessmentCategoryAdmin = lazy(
   () => import("./pages/absensi/admin/AssessmentCategoryAdmin.jsx"),
 );
@@ -52,6 +53,9 @@ const AssessmentDetail = lazy(
 
 const MyAssessment = lazy(
   () => import("./pages/absensi/user/Myassessment.jsx"),
+);
+const PointRules = lazy(
+  () => import("./pages/absensi/admin/PointRules.jsx"),
 );
 
 import Layout from "./layout/Layout";
@@ -135,6 +139,8 @@ function App() {
           <Route path="user/pengajuan" element={<Pengajuan />} />
           <Route path="user/profile" element={<Profile />} />
           <Route path="user/riwayat" element={<RiwayatAbsen />} />
+          <Route path="user/gamification" element={<GamificationWallet />} />
+          <Route path="admin/point-rules" element={<PointRules />} />
           <Route
             path="admin/assessments"
             element={<ManagerAssessmentDashboard />}
