@@ -279,54 +279,75 @@ const UserDashboard = () => {
     pengumumans && pengumumans.length > 0 ? pengumumans[0] : null;
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0f172a] pb-24 relative overflow-x-hidden">
-      <div className="bg-gradient-to-b from-indigo-600 to-purple-600 h-48 -mx-5 rounded-b-[100px] overflow-hidden absolute inset-x-0 top-0"></div>
-      <div className="px-5 relative z-10 pt-10">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0f172a] pb-2 relative overflow-x-hidden">
+      <div className="px-5 relative z-10">
         {featuredPengumuman && (
-          <div className="mb-6 relative overflow-hidden rounded-[24px] shadow-2xl shadow-indigo-900/20 w-full animate-fade-in-up">
-            <div
-              className={`absolute inset-0 opacity-90 backdrop-blur-md ${
-                featuredPengumuman.category === "Urgent"
-                  ? "bg-gradient-to-br from-red-500 to-rose-600"
-                  : featuredPengumuman.category === "Event"
-                    ? "bg-gradient-to-br from-indigo-500 to-violet-600"
-                    : "bg-gradient-to-br from-slate-800 to-slate-900 dark:from-slate-800 dark:to-[#0f172a]"
-              }`}
-            ></div>
+          <div className="mb-6 relative w-full animate-fade-in-up group pb-1 mt-2">
+            {/* Base Glowing Ambient Layer */}
+            <div className={`absolute inset-0 top-2 bottom-0 rounded-[30px] blur-2xl opacity-40 transition-opacity duration-500 group-hover:opacity-70 ${
+              featuredPengumuman.category === "Urgent" ? "bg-red-500" :
+              featuredPengumuman.category === "Event" ? "bg-indigo-500" :
+              "bg-blue-500"
+            }`}></div>
 
-            <div className="relative p-6 text-white z-10">
-              <div className="flex justify-between items-start mb-3">
-                <span
-                  className={`px-3 py-1 text-[10px] font-bold uppercase tracking-widest rounded-full flex items-center gap-1 bg-white/20 backdrop-blur-sm border border-white/10`}
-                >
-                  <Icon
-                    icon={
-                      featuredPengumuman.category === "Urgent"
-                        ? "ph:warning-circle-bold"
-                        : featuredPengumuman.category === "Event"
-                          ? "ph:calendar-star-bold"
-                          : "ph:info-bold"
-                    }
-                  />
-                  {featuredPengumuman.category}
-                </span>
-                <span className="text-[10px] text-white/70 font-medium">
-                  {new Date(featuredPengumuman.created_at).toLocaleDateString(
-                    "id-ID",
-                    { day: "numeric", month: "short" },
-                  )}
-                </span>
+            <div className="relative overflow-hidden rounded-[28px] bg-white/60 dark:bg-[#0f172a]/70 backdrop-blur-2xl border border-white/60 dark:border-white/10 p-6 z-10 transition-all duration-300 group-hover:-translate-y-1">
+              
+              {/* Modern Glass Bubble Blur Effects */}
+              <div className={`absolute -top-24 -right-10 w-56 h-56 rounded-full blur-[60px] opacity-60 dark:opacity-40 pointer-events-none ${
+                featuredPengumuman.category === "Urgent" ? "bg-rose-400" :
+                featuredPengumuman.category === "Event" ? "bg-violet-400" :
+                "bg-cyan-400"
+              }`}></div>
+              <div className={`absolute top-20 -left-20 w-48 h-48 rounded-full blur-[50px] opacity-60 dark:opacity-30 pointer-events-none ${
+                featuredPengumuman.category === "Urgent" ? "bg-orange-300" :
+                featuredPengumuman.category === "Event" ? "bg-fuchsia-400" :
+                "bg-blue-400"
+              }`}></div>
+
+              <div className="relative z-10">
+                <div className="flex justify-between items-center mb-4">
+                  <span
+                    className={`px-3 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-full flex items-center gap-1.5 border backdrop-blur-md shadow-sm ${
+                      featuredPengumuman.category === "Urgent" 
+                        ? "bg-red-50/80 dark:bg-red-500/20 border-red-200/60 dark:border-red-500/30 text-red-700 dark:text-red-300" 
+                        : featuredPengumuman.category === "Event" 
+                          ? "bg-indigo-50/80 dark:bg-indigo-500/20 border-indigo-200/60 dark:border-indigo-500/30 text-indigo-700 dark:text-indigo-300" 
+                          : "bg-blue-50/80 dark:bg-blue-500/20 border-blue-200/60 dark:border-blue-500/30 text-blue-700 dark:text-blue-300"
+                    }`}
+                  >
+                    <Icon
+                      icon={
+                        featuredPengumuman.category === "Urgent"
+                          ? "ph:warning-circle-duotone"
+                          : featuredPengumuman.category === "Event"
+                            ? "ph:calendar-star-duotone"
+                            : "ph:info-duotone"
+                      }
+                      className="text-base"
+                    />
+                    {featuredPengumuman.category}
+                  </span>
+                  <span className={`text-[10px] font-black tracking-widest uppercase ${
+                    featuredPengumuman.category === "Urgent" ? "text-red-500/80 dark:text-red-400" :
+                    featuredPengumuman.category === "Event" ? "text-indigo-500/80 dark:text-indigo-400" :
+                    "text-blue-500/80 dark:text-blue-400"
+                  }`}>
+                    {new Date(featuredPengumuman.created_at).toLocaleDateString(
+                      "id-ID",
+                      { day: "2-digit", month: "short", year: "numeric" },
+                    )}
+                  </span>
+                </div>
+                
+                <h3 className="text-[18px] font-black leading-tight mb-2 tracking-tight text-slate-800 dark:text-white drop-shadow-sm">
+                  {featuredPengumuman.title}
+                </h3>
+                
+                <p className="text-xs font-semibold text-slate-600/90 dark:text-slate-300/90 line-clamp-2 leading-relaxed">
+                  {featuredPengumuman.content}
+                </p>
               </div>
-              <h3 className="text-lg font-bold leading-tight mb-2 drop-shadow-md">
-                {featuredPengumuman.title}
-              </h3>
-              <p className="text-xs text-white/80 line-clamp-2 leading-relaxed font-medium">
-                {featuredPengumuman.content}
-              </p>
             </div>
-
-            {/* Decorative Element */}
-            <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
           </div>
         )}
 

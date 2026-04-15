@@ -216,10 +216,9 @@ const UserProfile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0f172a] pb-24 relative overflow-x-hidden">
-     <div className="bg-gradient-to-b from-indigo-600 to-purple-600 h-48 -mx-3 rounded-b-[100px] overflow-hidden absolute inset-x-0 top-0"></div>
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0f172a] relative overflow-x-hidden">
       <div className="px-5 relative z-10 max-w-2xl mx-auto">
-        <div className="text-center text-white mb-8">
+        <div className="text-center text-white">
 
         </div>
         <div className="bg-white dark:bg-slate-800 rounded-[32px] p-6 shadow-xl flex flex-col items-center mb-6">
