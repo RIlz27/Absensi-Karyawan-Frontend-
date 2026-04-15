@@ -1,6 +1,8 @@
 import React, { lazy, Suspense, useState, useEffect } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import axios from "axios";
+// Sesuaikan path-nya ke lokasi absensiService.js
+import API from "./store/api/AbsensiService";
 
 // home pages  & dashboard
 const Dashboard = lazy(() => import("./pages/dashboard"));
@@ -70,13 +72,9 @@ function App() {
   useEffect(() => {
     const checkSetup = async () => {
       try {
-        const API_BASE =
-          import.meta.env.VITE_API_URL ||
-          import.meta.env.VITE_API_BASE_URL ||
-          "http://127.0.0.1:8000/api";
-        const response = await axios.get(`${API_BASE}/initial-setup/check`, {
-          headers: { "ngrok-skip-browser-warning": "69420" },
-        });
+        // 2. GUNAKAN INSTANCE 'API' BUKAN 'axios'
+        // Tidak perlu nulis base URL lagi karena sudah diset di api/index.js
+        const response = await API.get("/initial-setup/check");
 
         if (response.data.setup_done === false) {
           setIsConfigured(false);
@@ -86,6 +84,7 @@ function App() {
         }
       } catch (error) {
         console.error("Koneksi Error:", error);
+        // Jika server mati/error, kita set true saja agar tidak stuck di loading
         setIsConfigured(true);
       }
     };
