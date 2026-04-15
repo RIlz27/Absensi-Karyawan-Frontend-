@@ -4,6 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { scanQr, scanSelfie } from "@/store/api/absensiService.js";
 import Card from "@/components/ui/Card";
 import { useNavigate } from "react-router-dom"; // Asumsi pake react-router
+import { Icon } from "@iconify/react";
 
 const Scanner = () => {
   const [status, setStatus] = useState({ type: "", msg: "" });

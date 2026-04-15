@@ -147,15 +147,6 @@ const Dashboard = () => {
                 </div>
               </Link>
 
-              {/* 4. LEADERBOARD */}
-              <Link to="/admin/leaderboard" className="group">
-                <div className="p-4 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-900 flex flex-col items-center justify-center text-center gap-3 hover:border-yellow-500 transition-all hover:shadow-md h-full">
-                  <div className="h-12 w-12 bg-yellow-100 dark:bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <Icon icon="ph:medal-military-duotone" className="text-2xl" />
-                  </div>
-                  <span className="text-xs font-bold dark:text-slate-200">Peringkat</span>
-                </div>
-              </Link>
 
               {/* 5. PENILAIAN */}
               <Link to="/admin/assessments" className="group">
