@@ -18,10 +18,9 @@ const UserDashboard = () => {
     totalHari: 30,
   });
   const [weeklyStatus, setWeeklyStatus] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [shiftToday, setShiftToday] = useState(null);
-  const [meDebugInfo, setMeDebugInfo] = useState("");
-  
-  // New States for Shift Logic
+  const [debugDay, setDebugDay] = useState("");
   const [session, setSession] = useState({ isCheckedIn: false, isCompleted: false, shift: null, todayRecord: null });
   const [timeLeft, setTimeLeft] = useState("");
   const [canCheckout, setCanCheckout] = useState(false);
@@ -121,26 +120,22 @@ const UserDashboard = () => {
         const meRes = await API.get("/me");
         const userShifts = meRes.data.shifts || [];
 
-        let debugText = "User Shifts Kosong/Gagal";
-        if (userShifts.length > 0) {
-          debugText = `${userShifts.length} shifts. Hari: ${userShifts.map(s => s.pivot?.hari).join(",")}`;
-        } else {
-          debugText = "Belum di-assign atau null";
-        }
-        setMeDebugInfo(debugText);
-
         // Find Today's Shift
         const currentEnglishDay = now.toLocaleDateString("en-US", {
           weekday: "long",
         });
+        setDebugDay(currentEnglishDay);
+
         const todayShifts = userShifts.filter(
-          (s) => s.pivot.hari === currentEnglishDay,
+          (s) => s.pivot?.hari?.trim().toLowerCase() === currentEnglishDay.toLowerCase(),
         );
+        
         // Prioritaskan shift tambahan jika ada
-        const todayShift = todayShifts.find((s) => s.pivot.tipe === 'tambahan') || 
-                           todayShifts.find((s) => s.pivot.tipe === 'biasa') || 
-                           todayShifts[0];
-        setShiftToday(todayShift || null);
+        const todayShift = todayShifts.find((s) => s.pivot?.tipe?.toLowerCase() === 'tambahan') || 
+                           todayShifts.find((s) => s.pivot?.tipe?.toLowerCase() === 'biasa') || 
+                           todayShifts[0] || null;
+                           
+        setShiftToday(todayShift);
 
         // Setup state session for today
         const todayYYYY = now.getFullYear();
@@ -231,7 +226,9 @@ const UserDashboard = () => {
 
         setWeeklyStatus(weekStatusArr);
       } catch (err) {
-        console.error("Failed to fetch pengajuan history:", err);
+        console.error("Failed to fetch dashboard data:", err);
+      } finally {
+        setIsLoading(false);
       }
     };
     fetchData();
@@ -499,12 +496,27 @@ const UserDashboard = () => {
             </button>
           </div>
 
-          {(() => {
+          {isLoading ? (
+             <div className="space-y-4 animate-pulse">
+                <div className="h-16 bg-slate-100 dark:bg-slate-800 rounded-[24px]"></div>
+                <div className="flex gap-4">
+                   <div className="h-14 flex-1 bg-slate-100 dark:bg-slate-800 rounded-[20px]"></div>
+                   <div className="h-14 flex-1 bg-slate-100 dark:bg-slate-800 rounded-[20px]"></div>
+                </div>
+                <div className="h-14 bg-indigo-100 dark:bg-indigo-900/30 rounded-[16px]"></div>
+             </div>
+          ) : (() => {
              const activeShift = session.shift || shiftToday;
              if (!activeShift && !session.todayRecord) {
                  return (
-                   <div className="w-full bg-slate-100 dark:bg-slate-800/50 py-4 rounded-[20px] text-center font-bold text-slate-500 border border-slate-200 dark:border-slate-700">
-                      Tidak Ada Shift Hari Ini
+                   <div className="w-full bg-slate-50 dark:bg-[#0f172a]/50 py-10 rounded-[28px] text-center flex flex-col items-center justify-center gap-3 border border-slate-200 dark:border-white/5">
+                      <div className="h-14 w-14 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-1">
+                        <Icon icon="ph:calendar-x-duotone" className="text-3xl text-slate-300 dark:text-slate-600" />
+                      </div>
+                      <div className="space-y-1">
+                        <span className="font-black text-slate-500 dark:text-slate-400 block text-sm tracking-tight">Tidak Ada Jadwal Shift</span>
+                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest block">{debugDay || "HARI LIBUR"}</span>
+                      </div>
                    </div>
                  );
              }
