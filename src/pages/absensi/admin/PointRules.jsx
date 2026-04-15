@@ -6,8 +6,9 @@ import {
   updateAdminRule 
 } from "@/store/api/absensiService.js";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Shield, Clock, Plus, Trash2, Edit3, Target, Zap, X, Save } from "lucide-react";
+import { Sparkles, Shield, Clock, Plus, Trash2, Edit3, Target, Zap, X, Save, Calculator, Users } from "lucide-react";
 import Swal from "sweetalert2";
+import axios from "axios";
 
 const PointRules = () => {
   const [rules, setRules] = useState([]);
@@ -25,6 +26,64 @@ const PointRules = () => {
     condition_value: "0",
     point_modifier: 0,
   });
+
+  // KASIR POIN (MANUAL ADJUSTMENT)
+  const [isCashierModalOpen, setIsCashierModalOpen] = useState(false);
+  const [usersList, setUsersList] = useState([]);
+  const [cashierForm, setCashierForm] = useState({
+    user_id: "",
+    amount: "",
+    reason: ""
+  });
+
+  const fetchUsersList = async () => {
+    try {
+      const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+      const url = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000/api";
+      const response = await axios.get(`${url}/users`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setUsersList(response.data.data || response.data);
+    } catch (error) {
+      console.error("Gagal menarik data user:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (isCashierModalOpen && usersList.length === 0) {
+      fetchUsersList();
+    }
+  }, [isCashierModalOpen]);
+
+  const handleCashierSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+      const url = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000/api";
+      await axios.post(`${url}/admin/gamification/manual-points`, cashierForm, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      Swal.fire({
+        background: "#1e293b",
+        color: "#ffffff",
+        title: "Poin Disetorkan!",
+        text: "Penyesuaian Manual berhasil dicatat.",
+        icon: "success",
+        timer: 2000,
+        showConfirmButton: false
+      });
+      setIsCashierModalOpen(false);
+      setCashierForm({ user_id: "", amount: "", reason: "" });
+    } catch (error) {
+      Swal.fire({
+        background: "#1e293b",
+        color: "#ffffff",
+        title: "Gagal",
+        text: error?.response?.data?.message || "Gagal menyesuaikan poin manual.",
+        icon: "error"
+      });
+    }
+  };
 
   const fetchRules = async () => {
     try {
@@ -112,7 +171,7 @@ const PointRules = () => {
   const handleDelete = async (id) => {
     Swal.fire({
       title: "Hapus Quest Ini?",
-      text: "Data quest poin tidak bisa dikembalikan setelah dihapus.",
+      text: "Data Quest poin tidak bisa dikembalikan setelah dihapus.",
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#ef4444",
@@ -139,7 +198,7 @@ const PointRules = () => {
           console.error("Gagal menghapus:", error);
           Swal.fire({
             title: "Gagal Hapus!",
-            text: "Terjadi kesalahan memusnahkan quest.",
+            text: "Terjadi kesalahan memusnahkan Quest.",
             icon: "error",
             background: "#1e293b",
             color: "#f8fafc",
@@ -247,7 +306,9 @@ const PointRules = () => {
                       <Clock className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                     </div>
                     <div>
-                      <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wide">Kondisi Relatif Shift</p>
+                      <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wide">
+                        Kondisi Relatif Shift
+                      </p>
                       <p className="font-mono text-sm font-bold text-slate-700 dark:text-slate-200 mt-0.5">
                         TELAT <span className="text-indigo-500 mx-1">{rule.condition_operator}</span> {rule.condition_value} <span className="text-xs text-slate-400">MNT</span>
                       </p>
@@ -352,7 +413,7 @@ const PointRules = () => {
                         type="number"
                         required
                         value={formData.point_modifier}
-                        onChange={(e) => setFormData({ ...formData, point_modifier: Number(e.target.value) })}
+                        onChange={(e) => setFormData({ ...formData, point_modifier: e.target.value })}
                         className="w-full pl-4 pr-12 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold"
                         placeholder="10 / -5"
                       />
@@ -425,6 +486,91 @@ const PointRules = () => {
           </div>
         )}
       </AnimatePresence>
+
+      {/* CASHIER MODAL */}
+      <AnimatePresence>
+        {isCashierModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 20 }}
+              className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden border border-slate-200 dark:border-slate-800"
+            >
+              <div className="px-6 py-5 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+                <h3 className="text-xl font-bold text-slate-800 dark:text-emerald-400 flex items-center gap-2">
+                  <Calculator className="w-5 h-5 text-emerald-500" />
+                  Kasir Poin (Penalti Manual)
+                </h3>
+                <button 
+                  onClick={() => setIsCashierModalOpen(false)}
+                  className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-white bg-white dark:bg-slate-800 rounded-full drop-shadow-sm transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleCashierSubmit} className="p-6 space-y-5">
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-2">
+                    <Users className="w-4 h-4" /> Karyawan
+                  </label>
+                  <select
+                    required
+                    value={cashierForm.user_id}
+                    onChange={(e) => setCashierForm({ ...cashierForm, user_id: e.target.value })}
+                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
+                  >
+                    <option value="" disabled>-- Pilih Karyawan --</option>
+                    {usersList.map(usr => (
+                      <option key={usr.id} value={usr.id}>{usr.name} ({usr.role})</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                    Jumlah Poin
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    value={cashierForm.amount}
+                    onChange={(e) => setCashierForm({ ...cashierForm, amount: e.target.value })}
+                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 font-bold"
+                    placeholder="-50 (minus untuk denda)"
+                  />
+                  <p className="mt-1 text-[11px] text-slate-500">Isi minus (-) untuk memotong poin pelanggaran.</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                    Keterangan Penalti / Reward
+                  </label>
+                  <textarea
+                    required
+                    rows="3"
+                    value={cashierForm.reason}
+                    onChange={(e) => setCashierForm({ ...cashierForm, reason: e.target.value })}
+                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium resize-none"
+                    placeholder="Contoh: Terlambat tanpa info, buang sampah sembarangan..."
+                  />
+                </div>
+
+                <div className="pt-2">
+                  <button
+                    type="submit"
+                    className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-emerald-500/25 transition-all"
+                  >
+                    <Save className="w-5 h-5" /> Proses Kasir Poin
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
     </div>
   );
 };

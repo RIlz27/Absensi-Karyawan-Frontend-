@@ -11,7 +11,8 @@ const Scanner = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [absensiData, setAbsensiData] = useState(null);
-  
+  const [pointsEarned, setPointsEarned] = useState([]);
+  const [totalPointsEarned, setTotalPointsEarned] = useState(0);
   // State for UX Cooldown & Countdown
   const [session, setSession] = useState({ loading: true, isCheckedIn: false, shift: null });
   const [timeLeft, setTimeLeft] = useState("");
@@ -102,6 +103,8 @@ const Scanner = () => {
     mutationFn: scanSelfie,
     onSuccess: (data) => {
       setAbsensiData(data.data); 
+      setPointsEarned(data.points_earned || []);
+      setTotalPointsEarned(data.total_points_earned || 0);
       setShowSuccessModal(true);
       setStatus({ type: "success", msg: data.message });
       setIsProcessing(false);
@@ -160,6 +163,8 @@ const Scanner = () => {
     mutationFn: scanQr,
     onSuccess: (data) => {
       setAbsensiData(data.data); 
+      setPointsEarned(data.points_earned || []);
+      setTotalPointsEarned(data.total_points_earned || 0);
       setShowSuccessModal(true);
       setStatus({ type: "success", msg: data.message });
       
@@ -341,59 +346,101 @@ const Scanner = () => {
           </div>
         )}
 
-        {/* --- BOTTOM SHEET MODAL --- */}
+        {/* --- RECEIPT MODAL --- */}
         {showSuccessModal && (
-          <div className="fixed inset-0 z-[999] flex items-end justify-center bg-black/60 transition-opacity duration-300 backdrop-blur-sm">
-            <div className="w-full max-w-md transform rounded-t-[32px] bg-white dark:bg-slate-900 p-6 pb-10 shadow-2xl transition-transform duration-500 translate-y-0 animate-in slide-in-from-bottom-full border-t border-white/10">
+          <div className="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm transition-opacity duration-300">
+            <div className="w-full max-w-sm transform bg-slate-50 dark:bg-slate-800 shadow-2xl transition-transform duration-500 scale-100 flex flex-col relative overflow-hidden" 
+                 style={{ borderRadius: "12px", filter: "drop-shadow(0 20px 13px rgb(0 0 0 / 0.15))" }}>
               
-              <div className="mx-auto mb-6 h-1.5 w-12 rounded-full bg-slate-300 dark:bg-slate-700"></div>
+              {/* Struk Zigzag Header Effect */}
+              <div className="absolute top-0 left-0 right-0 h-4 bg-repeat-x" 
+                   style={{ 
+                     backgroundImage: "radial-gradient(circle at 10px 0, transparent 0, transparent 10px, #f8fafc 11px)", 
+                     backgroundSize: "20px 20px" 
+                   }}>
+              </div>
+              <style dangerouslySetInnerHTML={{__html: `
+                .dark .dark-receipt-edge { background-image: radial-gradient(circle at 10px 0, transparent 0, transparent 10px, #1e293b 11px) !important; }
+              `}}/>
+              <div className="absolute top-0 left-0 right-0 h-4 bg-repeat-x dark:dark-receipt-edge" 
+                   style={{ backgroundSize: "20px 20px" }}>
+              </div>
 
-              <div className="text-center">
-                <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-green-100 dark:bg-green-500/10">
-                  <svg className="h-10 w-10 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="p-6 pt-10 flex flex-col items-center">
+                <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-500/20 shadow-inner">
+                  <svg className="h-8 w-8 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
-
-                <h3 className="text-2xl font-bold text-slate-800 dark:text-white">Berhasil Absen!</h3>
-                <p className="mt-2 text-slate-600 dark:text-slate-400 flex items-center justify-center gap-2">
-                  Status: <span className="font-bold px-2 py-0.5 bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400 rounded-lg text-sm">{absensiData?.status}</span>
-                </p>
+                <h3 className="text-xl font-black text-slate-800 dark:text-white uppercase tracking-widest">Absen Sukses</h3>
+                <p className="text-sm font-mono text-slate-500 dark:text-slate-400 mt-1">{absensiData?.tanggal || "-"}</p>
+                <div className="mt-2 text-sm font-bold px-3 py-1 bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-md uppercase">
+                  {absensiData?.status}
+                </div>
                 
-                <div className="mt-6 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/50 p-5 text-sm">
-                  <div className="flex justify-between items-center mb-3">
-                    <span className="text-slate-500 dark:text-slate-400 font-medium">Jam</span>
-                    <span className="font-bold text-slate-800 dark:text-white text-lg">
-                      {getDisplayTime(absensiData?.jam_pulang || absensiData?.jam_masuk)}
-                    </span>
+                {/* Dotted separator */}
+                <div className="w-full border-t-2 border-dashed border-slate-300 dark:border-slate-600 my-6"></div>
+
+                <div className="w-full font-mono text-xs sm:text-sm space-y-3 px-1">
+                  <div className="flex justify-between items-center text-slate-400 dark:text-slate-500 mb-2 uppercase font-bold text-[10px] tracking-widest">
+                    <span>Rincian Poin Didapat</span>
+                    <span>Nilai</span>
                   </div>
-                  <div className="flex justify-between items-center pt-3 border-t border-slate-200 dark:border-slate-700/50">
-                    <span className="text-slate-500 dark:text-slate-400 font-medium">Tanggal</span>
-                    <span className="font-semibold text-slate-800 dark:text-white">{absensiData?.tanggal || "-"}</span>
-                  </div>
+                  
+                  {pointsEarned.length > 0 ? (
+                    pointsEarned.map((p, idx) => {
+                       // Format deskripsi agar tidak terlalu panjang, misal ambil nama rulenya saja atau 25 char pertama
+                       // PointLedger description looks like: "Penyesuaian otomatis: Memenuhi kriteria 'Hadir' pada tanggal ..."
+                       let shortDesc = p.description;
+                       if (shortDesc.includes("kriteria '")) {
+                           shortDesc = shortDesc.split("kriteria '")[1].split("'")[0];
+                       } else if (shortDesc.length > 25) {
+                           shortDesc = shortDesc.substring(0, 25) + '...';
+                       }
+                       
+                       return (
+                        <div key={idx} className="flex justify-between items-center font-semibold text-slate-700 dark:text-slate-200">
+                          <span className="truncate pr-4 leading-tight">{shortDesc}</span>
+                          <span className={p.amount > 0 ? "text-emerald-500 flex-shrink-0" : "text-red-500 flex-shrink-0"}>
+                            {p.amount > 0 ? `+${p.amount}` : p.amount}
+                          </span>
+                        </div>
+                       )
+                    })
+                  ) : (
+                    <div className="flex justify-between items-center font-medium text-slate-500 italic py-2">
+                       <span>Poin Kehadiran Dasar</span>
+                       <span>0</span>
+                    </div>
+                  )}
                 </div>
 
-                <div className="mt-8 flex flex-col gap-3">
-                  <button
-                    onClick={() => {
-                        setShowSuccessModal(false);
-                        navigate("/user/riwayat"); 
-                    }}
-                    className="w-full rounded-2xl bg-indigo-600 hover:bg-indigo-500 py-4 font-bold text-white shadow-[0_8px_30px_rgb(79,70,229,0.3)] hover:shadow-[0_8px_30px_rgb(79,70,229,0.4)] active:scale-95 transition-all text-[15px]"
-                  >
-                    Lihat Riwayat Absen
-                  </button>
-                  <button
-                    onClick={() => {
-                        setShowSuccessModal(false);
-                        navigate("/user/dashboard"); 
-                    }}
-                    className="w-full rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 py-4 font-bold text-slate-700 dark:text-slate-300 active:scale-95 transition-all text-[15px]"
-                  >
-                    Kembali ke Beranda
-                  </button>
+                <div className="w-full border-t-2 border-dashed border-slate-300 dark:border-slate-600 my-6"></div>
+
+                <div className="w-full flex justify-between items-end px-1">
+                  <span className="font-bold text-slate-800 dark:text-white uppercase tracking-wider text-sm">Total</span>
+                  <span className="text-3xl font-black bg-clip-text text-transparent bg-gradient-to-r from-emerald-500 to-teal-600">
+                    +{totalPointsEarned}
+                  </span>
                 </div>
               </div>
+
+              {/* Bottom Actions */}
+              <div className="mt-2 p-5 bg-slate-100 dark:bg-slate-900/50 flex flex-col gap-3 rounded-b-xl border-t border-slate-200 dark:border-slate-700/50 relative z-10">
+                  <button
+                    onClick={() => { setShowSuccessModal(false); navigate("/user/gamification-wallet"); }}
+                    className="w-full rounded-xl bg-indigo-600 hover:bg-indigo-500 py-3.5 font-bold text-white shadow-lg shadow-indigo-500/30 transition-all uppercase tracking-wide text-[13px]"
+                  >
+                    Buka Dompet Poin 
+                  </button>
+                  <button
+                    onClick={() => { setShowSuccessModal(false); navigate("/user/dashboard"); }}
+                    className="w-full rounded-xl bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 py-3.5 font-bold text-slate-700 dark:text-slate-300 transition-all uppercase tracking-wide text-[13px]"
+                  >
+                    Kembali Ke Beranda
+                  </button>
+              </div>
+
             </div>
           </div>
         )}

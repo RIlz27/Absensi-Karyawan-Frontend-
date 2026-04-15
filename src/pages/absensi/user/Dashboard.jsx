@@ -133,9 +133,13 @@ const UserDashboard = () => {
         const currentEnglishDay = now.toLocaleDateString("en-US", {
           weekday: "long",
         });
-        const todayShift = userShifts.find(
+        const todayShifts = userShifts.filter(
           (s) => s.pivot.hari === currentEnglishDay,
         );
+        // Prioritaskan shift tambahan jika ada
+        const todayShift = todayShifts.find((s) => s.pivot.tipe === 'tambahan') || 
+                           todayShifts.find((s) => s.pivot.tipe === 'biasa') || 
+                           todayShifts[0];
         setShiftToday(todayShift || null);
 
         // Setup state session for today
