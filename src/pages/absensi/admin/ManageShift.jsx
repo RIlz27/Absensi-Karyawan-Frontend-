@@ -783,22 +783,10 @@ const ManageShift = () => {
                                 {({ active }) => (
                                   <button
                                     onClick={() => {
-                                      let inputHari = window.prompt("Berlaku untuk hari apa? (Senin/Selasa/Rabu/Kamis/Jumat/Sabtu/Minggu):", "Senin");
-                                      if (!inputHari) return;
-                                      
-                                      const validDays = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"];
-                                      let cleanHari = inputHari.trim();
-                                      cleanHari = cleanHari.charAt(0).toUpperCase() + cleanHari.slice(1).toLowerCase();
-                                      
-                                      if(!validDays.includes(cleanHari)) {
-                                          alert("Hari tidak valid! Harus: " + validDays.join(", "));
-                                          return;
-                                      }
-
                                       const newShiftEntry = {
                                         id: Date.now(),
                                         shift_id: master.id,
-                                        day: cleanHari,
+                                        day: master.nama.includes("Shift ") ? master.nama.split(" ")[1] : "Biasa",
                                         time: `${master.jam_masuk.substring(0, 5)} - ${master.jam_pulang.substring(0, 5)}`,
                                         color: master.warna || "#10B981",
                                         nama: master.nama,

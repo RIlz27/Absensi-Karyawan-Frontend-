@@ -25,6 +25,7 @@ const PointRules = () => {
     condition_operator: "<=",
     condition_value: "0",
     point_modifier: 0,
+    tipe_quest: "waktu",
   });
 
   // KASIR POIN (MANUAL ADJUSTMENT)
@@ -107,18 +108,24 @@ const PointRules = () => {
       condition_operator: "<=",
       condition_value: "0",
       point_modifier: 10,
+      tipe_quest: "hadir",
     });
     setModalMode("create");
     setIsModalOpen(true);
   };
 
   const openEditModal = (rule) => {
+    let tipe = "waktu";
+    if (rule.condition_value === "HADIR") tipe = "hadir";
+    else if (rule.condition_value === "ALFA") tipe = "alfa";
+    
     setFormData({
       rule_name: rule.rule_name,
       target_role: rule.target_role || "Semua",
       condition_operator: rule.condition_operator,
       condition_value: rule.condition_value,
       point_modifier: rule.point_modifier,
+      tipe_quest: tipe,
     });
     setEditingId(rule.id);
     setModalMode("edit");
@@ -129,8 +136,17 @@ const PointRules = () => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
+      const payload = { ...formData };
+      if (payload.tipe_quest === "hadir") {
+         payload.condition_operator = "==";
+         payload.condition_value = "HADIR";
+      } else if (payload.tipe_quest === "alfa") {
+         payload.condition_operator = "==";
+         payload.condition_value = "ALFA";
+      }
+      
       if (modalMode === "create") {
-        await createAdminRule(formData);
+        await createAdminRule(payload);
         Swal.fire({
           title: "Berhasil!",
           text: "Quest baru telah ditambahkan ke sistem.",
@@ -141,7 +157,7 @@ const PointRules = () => {
           showConfirmButton: false
         });
       } else {
-        await updateAdminRule(editingId, formData);
+        await updateAdminRule(editingId, payload);
         Swal.fire({
           title: "Diperbarui!",
           text: "Quest berhasil diperbarui.",
@@ -302,15 +318,30 @@ const PointRules = () => {
 
                 <div className="relative z-10 mt-6 bg-slate-50 dark:bg-[#0A0D18]/60 rounded-2xl p-4 border border-slate-200/60 dark:border-slate-700/50 shadow-inner">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-indigo-100 dark:bg-indigo-500/20 rounded-xl">
-                      <Clock className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                    <div className={`p-2 rounded-xl ${
+                      rule.condition_value === 'HADIR' ? 'bg-emerald-100 dark:bg-emerald-500/20' :
+                      rule.condition_value === 'ALFA' ? 'bg-rose-100 dark:bg-rose-500/20' :
+                      'bg-indigo-100 dark:bg-indigo-500/20'
+                    }`}>
+                      <Clock className={`w-4 h-4 ${
+                        rule.condition_value === 'HADIR' ? 'text-emerald-600 dark:text-emerald-400' :
+                        rule.condition_value === 'ALFA' ? 'text-rose-600 dark:text-rose-400' :
+                        'text-indigo-600 dark:text-indigo-400'
+                      }`} />
                     </div>
                     <div>
                       <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wide">
-                        Kondisi Relatif Shift
+                        {rule.condition_value === 'HADIR' ? 'Trigger Otomatis' : 
+                         rule.condition_value === 'ALFA' ? 'Trigger Bot/Cron' : 'Kondisi Relatif Shift'}
                       </p>
                       <p className="font-mono text-sm font-bold text-slate-700 dark:text-slate-200 mt-0.5">
-                        TELAT <span className="text-indigo-500 mx-1">{rule.condition_operator}</span> {rule.condition_value} <span className="text-xs text-slate-400">MNT</span>
+                        {rule.condition_value === 'HADIR' ? (
+                          <span className="text-emerald-500">SETIAP ABSEN MASUK</span>
+                        ) : rule.condition_value === 'ALFA' ? (
+                          <span className="text-rose-500">TIDAK HADIR (ALFA)</span>
+                        ) : (
+                          <>TELAT <span className="text-indigo-500 mx-1">{rule.condition_operator}</span> {rule.condition_value} <span className="text-xs text-slate-400">MNT</span></>
+                        )}
                       </p>
                     </div>
                   </div>
@@ -389,6 +420,21 @@ const PointRules = () => {
                   />
                 </div>
 
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                    Tipe Quest (Kondisi Trigger)
+                  </label>
+                  <select
+                    value={formData.tipe_quest}
+                    onChange={(e) => setFormData({ ...formData, tipe_quest: e.target.value })}
+                    className="w-full px-4 py-3 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-700/50 rounded-xl text-indigo-900 dark:text-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold"
+                  >
+                    <option value="hadir">Poin Dasar Kehadiran (Otomatis saat Absen Masuk)</option>
+                    <option value="waktu">Poin Waktu Kehadiran (Disiplin/Telat)</option>
+                    <option value="alfa">Poin Alfa (Sanksi Otomatis jika Tidak Absen)</option>
+                  </select>
+                </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
@@ -422,40 +468,42 @@ const PointRules = () => {
                   </div>
                 </div>
 
-                <div className="p-4 bg-indigo-50 dark:bg-indigo-500/10 rounded-2xl border border-indigo-100 dark:border-indigo-500/20">
-                  <label className="block text-sm font-bold text-indigo-800 dark:text-indigo-300 mb-2 flex items-center gap-2">
-                    <Clock className="w-4 h-4" /> Toleransi Telat dari Shift (Menit)
-                  </label>
-                  <p className="text-[11px] text-indigo-600 dark:text-indigo-400 mb-3 font-medium leading-relaxed">
-                    Lebih terukur! Tidak perlu ganti walau Admin mengganti jadwal shift.<br/>
-                    Misal: <strong className="text-indigo-700 dark:text-indigo-300">{"<="} 0</strong> berarti Tepat, <strong className="text-indigo-700 dark:text-indigo-300">{">"} 15</strong> berarti Telat 15 Mnt.
-                  </p>
-                  <div className="flex gap-3">
-                    <select
-                      value={formData.condition_operator}
-                      onChange={(e) => setFormData({ ...formData, condition_operator: e.target.value })}
-                      className="w-1/2 px-3 py-2.5 bg-white dark:bg-slate-800 border border-indigo-200 dark:border-indigo-500/30 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-center"
-                    >
-                      <option value="<">Kurang dari ( {"<"} )</option>
-                      <option value="<=">Maksimal ( {"<="} )</option>
-                      <option value=">">Lebih dari ( {">"} )</option>
-                      <option value=">=">Minimal ( {">="} )</option>
-                      <option value="==">Tepat ( {"=="} )</option>
-                    </select>
-                    
-                    <div className="relative w-1/2">
-                      <input
-                        type="number"
-                        required
-                        value={formData.condition_value}
-                        onChange={(e) => setFormData({ ...formData, condition_value: e.target.value })}
-                        className="w-full pl-4 pr-12 py-2.5 bg-white dark:bg-slate-800 border border-indigo-200 dark:border-indigo-500/30 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono font-bold"
-                        placeholder="Contoh: 15"
-                      />
-                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">MNT</span>
+                {formData.tipe_quest === 'waktu' && (
+                  <div className="p-4 bg-indigo-50 dark:bg-indigo-500/10 rounded-2xl border border-indigo-100 dark:border-indigo-500/20">
+                    <label className="block text-sm font-bold text-indigo-800 dark:text-indigo-300 mb-2 flex items-center gap-2">
+                      <Clock className="w-4 h-4" /> Toleransi Telat dari Shift (Menit)
+                    </label>
+                    <p className="text-[11px] text-indigo-600 dark:text-indigo-400 mb-3 font-medium leading-relaxed">
+                      Lebih terukur! Tidak perlu ganti walau Admin mengganti jadwal shift.<br/>
+                      Misal: <strong className="text-indigo-700 dark:text-indigo-300">{"<="} 0</strong> berarti Tepat, <strong className="text-indigo-700 dark:text-indigo-300">{">"} 15</strong> berarti Telat 15 Mnt.
+                    </p>
+                    <div className="flex gap-3">
+                      <select
+                        value={formData.condition_operator}
+                        onChange={(e) => setFormData({ ...formData, condition_operator: e.target.value })}
+                        className="w-1/2 px-3 py-2.5 bg-white dark:bg-slate-800 border border-indigo-200 dark:border-indigo-500/30 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-center"
+                      >
+                        <option value="<">Kurang dari ( {"<"} )</option>
+                        <option value="<=">Maksimal ( {"<="} )</option>
+                        <option value=">">Lebih dari ( {">"} )</option>
+                        <option value=">=">Minimal ( {">="} )</option>
+                        <option value="==">Tepat ( {"=="} )</option>
+                      </select>
+                      
+                      <div className="relative w-1/2">
+                        <input
+                          type="number"
+                          required={formData.tipe_quest === 'waktu'}
+                          value={formData.condition_value}
+                          onChange={(e) => setFormData({ ...formData, condition_value: e.target.value })}
+                          className="w-full pl-4 pr-12 py-2.5 bg-white dark:bg-slate-800 border border-indigo-200 dark:border-indigo-500/30 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono font-bold"
+                          placeholder="Contoh: 15"
+                        />
+                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">MNT</span>
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
 
                 {/* Modal Footer */}
                 <div className="pt-4 flex gap-3">
