@@ -399,48 +399,48 @@ const PointRules = () => {
         {isQuestModalOpen && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-y-auto bg-black/80 backdrop-blur-md">
             <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-[#0f172a] w-full max-w-xl rounded-[40px] border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden"
+              className="bg-white dark:bg-[#0f172a] w-full max-w-xl rounded-[32px] border border-slate-200 dark:border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden"
             >
               {/* HEADER: Clean & Minimal */}
-              <div className="px-8 py-6 border-b border-white/5 flex justify-between items-center bg-white/[0.02]">
-                <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                  <div className="p-2 bg-indigo-500/20 rounded-xl text-indigo-400">
-                    <Zap size={18} />
+              <div className="px-8 py-6 border-b border-slate-100 dark:border-white/5 flex justify-between items-center bg-slate-50/50 dark:bg-white/[0.02]">
+                <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
+                  <div className="p-2 bg-indigo-500/10 dark:bg-indigo-500/20 rounded-xl text-indigo-600 dark:text-indigo-400">
+                    <Zap size={20} />
                   </div>
-                  Quest Configuration
+                  Konfigurasi Aturan
                 </h2>
-                <button onClick={() => setIsQuestModalOpen(false)} className="p-2 hover:bg-white/5 rounded-full text-slate-500 transition-colors"><X size={20} /></button>
+                <button onClick={() => setIsQuestModalOpen(false)} className="p-2 hover:bg-slate-200 dark:hover:bg-white/5 rounded-full text-slate-400 transition-colors"><X size={20} /></button>
               </div>
 
               <form onSubmit={handleQuestSubmit} className="p-8 space-y-6">
                 {/* 1. BASIC INFORMATION */}
-                <div className="space-y-4">
-                  <div>
-                    <label className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.2em] mb-2 block">Judul Quest</label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="col-span-full sm:col-span-1">
+                    <label className="text-[10px] font-black text-slate-500 dark:text-indigo-500 uppercase tracking-widest mb-2 block">Judul Quest</label>
                     <input 
                        type="text" required value={questForm.rule_name} onChange={(e) => setQuestForm({...questForm, rule_name: e.target.value})}
                        placeholder="Contoh: Disiplin Pagi"
-                       className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3.5 text-white focus:ring-2 focus:ring-indigo-500 transition-all outline-none"
+                       className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl px-5 py-3.5 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 transition-all outline-none"
                     />
                   </div>
-                  <div>
-                    <label className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.2em] mb-2 block">Target Role</label>
+                  <div className="col-span-full sm:col-span-1">
+                    <label className="text-[10px] font-black text-slate-500 dark:text-indigo-500 uppercase tracking-widest mb-2 block">Target Role</label>
                     <select 
                        value={questForm.target_role} onChange={(e) => setQuestForm({...questForm, target_role: e.target.value})}
-                       className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3.5 text-white focus:ring-2 focus:ring-indigo-500 outline-none"
+                       className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-2xl px-5 py-3.5 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none h-[54px]"
                     >
-                      <option value="Semua">Semua Karyawan</option>
-                      <option value="karyawan">Hanya Karyawan</option>
-                      <option value="admin">Hanya Admin</option>
+                      <option value="Semua" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">Semua Karyawan</option>
+                      <option value="karyawan" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">Hanya Karyawan</option>
+                      <option value="admin" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">Hanya Admin</option>
                     </select>
                   </div>
                 </div>
 
                 {/* 2. LOGIC & TRIGGER */}
-                <div className="pt-6 border-t border-white/5 space-y-4">
+                <div className="pt-6 border-t border-slate-100 dark:border-white/5 space-y-4">
                   <div className="grid grid-cols-1 gap-4">
                     <div>
-                      <label className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.2em] mb-2 block">Trigger Kondisi</label>
+                      <label className="text-[10px] font-black text-slate-500 dark:text-indigo-500 uppercase tracking-widest mb-2 block">Trigger Kondisi</label>
                       <select 
                         value={questForm.tipe_trigger} 
                         onChange={(e) => {
@@ -453,38 +453,38 @@ const PointRules = () => {
                           else if (val === "sangat_awal") { newForm.condition_operator = "<="; newForm.condition_value = "-15"; }
                           setQuestForm(newForm);
                         }}
-                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3.5 text-white outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-2xl px-5 py-3.5 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500 h-[54px]"
                       >
-                         <option value="hadir">Status: Absen Masuk</option>
-                         <option value="alfa">Status: Tidak Masuk (Alfa)</option>
-                         <option value="tepat_waktu">Waktu: Tepat Waktu</option>
-                         <option value="telat">Waktu: Keterlambatan</option>
-                         <option value="sangat_awal">Waktu: Datang Sangat Awal</option>
-                         <option value="custom">Waktu: Kustom (Manual)</option>
+                         <option value="hadir" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">Status: Absen Masuk</option>
+                         <option value="alfa" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">Status: Tidak Masuk (Alfa)</option>
+                         <option value="tepat_waktu" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">Waktu: Tepat Waktu</option>
+                         <option value="telat" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">Waktu: Keterlambatan</option>
+                         <option value="sangat_awal" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">Waktu: Datang Sangat Awal</option>
+                         <option value="custom" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">Waktu: Kustom (Manual)</option>
                       </select>
                     </div>
 
                     {["tepat_waktu", "telat", "sangat_awal", "custom"].includes(questForm.tipe_trigger) && (
                       <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
                         <div>
-                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 block">Operator</label>
+                          <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2 block">Operator</label>
                           <select 
                              value={questForm.condition_operator} onChange={(e) => setQuestForm({...questForm, condition_operator: e.target.value})}
-                             className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3.5 text-white outline-none"
+                             className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-2xl px-5 py-3.5 text-slate-900 dark:text-white outline-none h-[54px]"
                           >
-                             <option value="<">{"Kurang Dari (<)"}</option>
-                             <option value="<=">{"Maksimal (<=)"}</option>
-                             <option value=">">{"Lebih Dari (>)"}</option>
-                             <option value=">=">{"Minimal (>=)"}</option>
-                             <option value="=">{"Sama Dengan (=)"}</option>
-                             <option value="BETWEEN">{"Antara (Range)"}</option>
+                             <option value="<" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">{"Kurang Dari (<)"}</option>
+                             <option value="<=" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">{"Maksimal (<=)"}</option>
+                             <option value=">" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">{"Lebih Dari (>)"}</option>
+                             <option value=">=" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">{"Minimal (>=)"}</option>
+                             <option value="=" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">{"Sama Dengan (=)"}</option>
+                             <option value="BETWEEN" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">{"Antara (Range)"}</option>
                           </select>
                         </div>
                         <div>
-                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 block">Menit</label>
+                          <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2 block">Menit</label>
                           <input 
                              type="text" required value={questForm.condition_value} onChange={(e) => setQuestForm({...questForm, condition_value: e.target.value})}
-                             className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3.5 text-white outline-none font-mono text-center"
+                             className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl px-5 py-3.5 text-slate-900 dark:text-white outline-none font-mono text-center h-[54px]"
                              placeholder={questForm.condition_operator === "BETWEEN" ? "0,15" : "0"}
                           />
                         </div>
@@ -494,21 +494,21 @@ const PointRules = () => {
                 </div>
 
                 {/* 3. REWARD */}
-                <div className="pt-6 border-t border-white/5">
-                  <label className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.2em] mb-2 block">Hadiah / Denda Poin</label>
-                  <div className="relative">
+                <div className="pt-6 border-t border-slate-100 dark:border-white/5">
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 block text-center">Hadiah / Denda Poin</label>
+                  <div className="relative group">
                     <input 
                       type="number" required value={questForm.point_modifier} onChange={(e) => setQuestForm({...questForm, point_modifier: e.target.value})}
-                      className="w-full bg-emerald-500/10 border border-emerald-500/20 rounded-2xl px-5 py-4 text-emerald-400 font-black text-2xl outline-none text-center"
-                      placeholder="Contoh: 15"
+                      className={`w-full bg-white dark:bg-black/20 border-2 ${String(questForm.point_modifier).startsWith('-') ? 'border-rose-200 text-rose-500' : 'border-emerald-200 text-emerald-500'} rounded-3xl px-5 py-6 font-black text-4xl outline-none text-center transition-all`}
                     />
-                    <div className="absolute right-6 top-1/2 -translate-y-1/2 text-[10px] font-black text-emerald-600 uppercase">Points</div>
+                    <div className={`absolute right-8 top-1/2 -translate-y-1/2 text-[10px] font-black uppercase tracking-widest ${String(questForm.point_modifier).startsWith('-') ? 'text-rose-300' : 'text-emerald-300'}`}>Points</div>
                   </div>
                 </div>
 
-                <div className="pt-4">
-                   <button type="submit" className="w-full py-4.5 bg-indigo-600 hover:bg-indigo-500 text-white font-black rounded-2xl text-lg shadow-xl shadow-indigo-600/20 transition-all flex items-center justify-center gap-2">
-                      <Save size={20} /> Simpan Pengaturan Quest
+                <div className="pt-2">
+                   <button type="submit" className="w-full h-16 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-2xl text-xl shadow-xl shadow-indigo-600/20 transition-all flex items-center justify-center gap-3 active:scale-[0.98]">
+                      <Save size={24} /> 
+                      Simpan Aturan
                    </button>
                 </div>
               </form>
