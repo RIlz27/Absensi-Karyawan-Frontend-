@@ -85,10 +85,15 @@ const PointRules = () => {
     e.preventDefault();
     try {
       const payload = { ...questForm };
-      // Handle special triggers
-      if (payload.tipe_trigger === "hadir") {
-        payload.condition_operator = "=";
-        payload.condition_value = "HADIR";
+      
+      // Ensure backend-friendly values for presets
+      if (["hadir", "tepat_waktu", "telat", "sangat_awal", "custom"].includes(payload.tipe_trigger)) {
+          // These are all time-based or existence-based, but 'hadir' is special
+          if (payload.tipe_trigger === "hadir") {
+            payload.condition_operator = "=";
+            payload.condition_value = "HADIR";
+          }
+          // The others already have their operator and value set by the UI presets
       } else if (payload.tipe_trigger === "alfa") {
         payload.condition_operator = "=";
         payload.condition_value = "ALFA";
@@ -430,18 +435,45 @@ const PointRules = () => {
                    melakukan 
                    <div className="inline-block mx-2">
                      <select 
-                       value={questForm.tipe_trigger} onChange={(e) => setQuestForm({...questForm, tipe_trigger: e.target.value})}
+                       value={questForm.tipe_trigger} 
+                       onChange={(e) => {
+                         const val = e.target.value;
+                         let newForm = { ...questForm, tipe_trigger: val };
+                         
+                         // PRESET LOGIC
+                         if (val === "alfa") {
+                           newForm.condition_operator = "=";
+                           newForm.condition_value = "ALFA";
+                         } else if (val === "hadir") {
+                           newForm.condition_operator = "=";
+                           newForm.condition_value = "HADIR";
+                         } else if (val === "tepat_waktu") {
+                           newForm.condition_operator = "<=";
+                           newForm.condition_value = "0";
+                         } else if (val === "telat") {
+                           newForm.condition_operator = ">";
+                           newForm.condition_value = "15";
+                         } else if (val === "sangat_awal") {
+                           newForm.condition_operator = "<=";
+                           newForm.condition_value = "-15";
+                         }
+                         
+                         setQuestForm(newForm);
+                       }}
                        className="bg-indigo-500/20 border border-indigo-500/30 rounded-xl px-3 py-1.5 focus:outline-none text-indigo-300"
                      >
-                        <option value="hadir">Check-in Kehadiran</option>
-                        <option value="waktu">Check-in Waktu Tertentu</option>
-                        <option value="alfa">Tidak Masuk (Alfa)</option>
+                        <option value="hadir">Absen Masuk (Umum)</option>
+                        <option value="tepat_waktu">Absen Tepat Waktu</option>
+                        <option value="telat">Keterlambatan (Telat)</option>
+                        <option value="sangat_awal">Datang Sangat Awal</option>
+                        <option value="alfa">Status Alfa (Mangkir)</option>
+                        <option value="custom">Kondisi Kustom (Waktu)</option>
                      </select>
                    </div>
 
-                   {questForm.tipe_trigger === "waktu" && (
+                   {["tepat_waktu", "telat", "sangat_awal", "custom"].includes(questForm.tipe_trigger) && (
                      <>
-                        dengan selisih menit 
+                        dengan selisih 
                         <div className="inline-block mx-2">
                           <select 
                              value={questForm.condition_operator} onChange={(e) => setQuestForm({...questForm, condition_operator: e.target.value})}
@@ -452,12 +484,14 @@ const PointRules = () => {
                              <option value=">">{">"}</option>
                              <option value=">=">{">="}</option>
                              <option value="=">{"="}</option>
+                             <option value="BETWEEN">Antara</option>
                           </select>
                         </div>
                         <div className="inline-block mx-2">
                            <input 
-                              type="number" required value={questForm.condition_value} onChange={(e) => setQuestForm({...questForm, condition_value: e.target.value})}
-                              className="w-16 bg-white/5 border border-white/10 rounded-xl px-2 py-1.5 text-center focus:outline-none text-white font-mono"
+                              type="text" required value={questForm.condition_value} onChange={(e) => setQuestForm({...questForm, condition_value: e.target.value})}
+                              className="w-24 bg-white/5 border border-white/10 rounded-xl px-2 py-1.5 text-center focus:outline-none text-white font-mono"
+                              placeholder={questForm.condition_operator === "BETWEEN" ? "1,15" : "0"}
                            />
                         </div>
                         menit
