@@ -560,7 +560,7 @@ const PointRules = () => {
 
               <form onSubmit={handleCashierSubmit} className="p-6 space-y-5">
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-2">
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5 items-center gap-2">
                     <Users className="w-4 h-4" /> Karyawan
                   </label>
                   <select

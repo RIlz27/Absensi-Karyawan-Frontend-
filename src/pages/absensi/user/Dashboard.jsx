@@ -125,16 +125,19 @@ const UserDashboard = () => {
           weekday: "long",
         });
         setDebugDay(currentEnglishDay);
+        console.log("Current Day (EN):", currentEnglishDay);
+        console.log("User Shifts from /me:", userShifts);
 
         const todayShifts = userShifts.filter(
           (s) => s.pivot?.hari?.trim().toLowerCase() === currentEnglishDay.toLowerCase(),
         );
-        
+        console.log("Matched Shifts:", todayShifts);
+
         // Prioritaskan shift tambahan jika ada
-        const todayShift = todayShifts.find((s) => s.pivot?.tipe?.toLowerCase() === 'tambahan') || 
-                           todayShifts.find((s) => s.pivot?.tipe?.toLowerCase() === 'biasa') || 
-                           todayShifts[0] || null;
-                           
+        const todayShift = todayShifts.find((s) => s.pivot?.tipe?.toLowerCase() === 'tambahan') ||
+          todayShifts.find((s) => s.pivot?.tipe?.toLowerCase() === 'biasa') ||
+          todayShifts[0] || null;
+
         setShiftToday(todayShift);
 
         // Setup state session for today
@@ -142,17 +145,17 @@ const UserDashboard = () => {
         const todayMM = String(now.getMonth() + 1).padStart(2, '0');
         const todayDD = String(now.getDate()).padStart(2, '0');
         const todayStr = `${todayYYYY}-${todayMM}-${todayDD}`;
-        
+
         const todayRecord = historyRes.data.find(h => h.tanggal === todayStr);
 
         if (todayRecord) {
-             if (todayRecord.jam_pulang) {
-                 setSession({ isCheckedIn: true, isCompleted: true, shift: todayRecord.shift, todayRecord });
-             } else {
-                 setSession({ isCheckedIn: true, isCompleted: false, shift: todayRecord.shift, todayRecord });
-             }
+          if (todayRecord.jam_pulang) {
+            setSession({ isCheckedIn: true, isCompleted: true, shift: todayRecord.shift, todayRecord });
+          } else {
+            setSession({ isCheckedIn: true, isCompleted: false, shift: todayRecord.shift, todayRecord });
+          }
         } else {
-             setSession({ isCheckedIn: false, isCompleted: false, shift: null, todayRecord: null });
+          setSession({ isCheckedIn: false, isCompleted: false, shift: null, todayRecord: null });
         }
 
         // Extract working days in English
@@ -238,30 +241,30 @@ const UserDashboard = () => {
   useEffect(() => {
     let timer;
     if (session.isCheckedIn && !session.isCompleted && (shiftToday || session.shift)) {
-       const shiftToUse = session.shift || shiftToday;
-       if (!shiftToUse?.jam_pulang) return;
+      const shiftToUse = session.shift || shiftToday;
+      if (!shiftToUse?.jam_pulang) return;
 
-       timer = setInterval(() => {
-         const now = new Date();
-         const [hours, minutes, seconds] = shiftToUse.jam_pulang.split(':');
-         
-         const returnTime = new Date();
-         returnTime.setHours(parseInt(hours), parseInt(minutes), parseInt(seconds || 0), 0);
+      timer = setInterval(() => {
+        const now = new Date();
+        const [hours, minutes, seconds] = shiftToUse.jam_pulang.split(':');
 
-         const diff = returnTime - now;
+        const returnTime = new Date();
+        returnTime.setHours(parseInt(hours), parseInt(minutes), parseInt(seconds || 0), 0);
 
-         if (diff <= 0) {
-           setTimeLeft("00.00.00");
-           setCanCheckout(true);
-           clearInterval(timer);
-         } else {
-           const h = String(Math.floor(diff / (1000 * 60 * 60))).padStart(2, '0');
-           const m = String(Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0');
-           const s = String(Math.floor((diff % (1000 * 60)) / 1000)).padStart(2, '0');
-           setTimeLeft(`${h}.${m}.${s}`);
-           setCanCheckout(false);
-         }
-       }, 1000);
+        const diff = returnTime - now;
+
+        if (diff <= 0) {
+          setTimeLeft("00.00.00");
+          setCanCheckout(true);
+          clearInterval(timer);
+        } else {
+          const h = String(Math.floor(diff / (1000 * 60 * 60))).padStart(2, '0');
+          const m = String(Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0');
+          const s = String(Math.floor((diff % (1000 * 60)) / 1000)).padStart(2, '0');
+          setTimeLeft(`${h}.${m}.${s}`);
+          setCanCheckout(false);
+        }
+      }, 1000);
     }
     return () => clearInterval(timer);
   }, [session, shiftToday]);
@@ -283,36 +286,32 @@ const UserDashboard = () => {
         {featuredPengumuman && (
           <div className="mb-6 relative w-full animate-fade-in-up group pb-1 mt-2">
             {/* Base Glowing Ambient Layer */}
-            <div className={`absolute inset-0 top-2 bottom-0 rounded-[30px] blur-2xl opacity-40 transition-opacity duration-500 group-hover:opacity-70 ${
-              featuredPengumuman.category === "Urgent" ? "bg-red-500" :
-              featuredPengumuman.category === "Event" ? "bg-indigo-500" :
-              "bg-blue-500"
-            }`}></div>
+            <div className={`absolute inset-0 top-2 bottom-0 rounded-[30px] blur-2xl opacity-40 transition-opacity duration-500 group-hover:opacity-70 ${featuredPengumuman.category === "Urgent" ? "bg-red-500" :
+                featuredPengumuman.category === "Event" ? "bg-indigo-500" :
+                  "bg-blue-500"
+              }`}></div>
 
             <div className="relative overflow-hidden rounded-[28px] bg-white/60 dark:bg-[#0f172a]/70 backdrop-blur-2xl border border-white/60 dark:border-white/10 p-6 z-10 transition-all duration-300 group-hover:-translate-y-1">
-              
+
               {/* Modern Glass Bubble Blur Effects */}
-              <div className={`absolute -top-24 -right-10 w-56 h-56 rounded-full blur-[60px] opacity-60 dark:opacity-40 pointer-events-none ${
-                featuredPengumuman.category === "Urgent" ? "bg-rose-400" :
-                featuredPengumuman.category === "Event" ? "bg-violet-400" :
-                "bg-cyan-400"
-              }`}></div>
-              <div className={`absolute top-20 -left-20 w-48 h-48 rounded-full blur-[50px] opacity-60 dark:opacity-30 pointer-events-none ${
-                featuredPengumuman.category === "Urgent" ? "bg-orange-300" :
-                featuredPengumuman.category === "Event" ? "bg-fuchsia-400" :
-                "bg-blue-400"
-              }`}></div>
+              <div className={`absolute -top-24 -right-10 w-56 h-56 rounded-full blur-[60px] opacity-60 dark:opacity-40 pointer-events-none ${featuredPengumuman.category === "Urgent" ? "bg-rose-400" :
+                  featuredPengumuman.category === "Event" ? "bg-violet-400" :
+                    "bg-cyan-400"
+                }`}></div>
+              <div className={`absolute top-20 -left-20 w-48 h-48 rounded-full blur-[50px] opacity-60 dark:opacity-30 pointer-events-none ${featuredPengumuman.category === "Urgent" ? "bg-orange-300" :
+                  featuredPengumuman.category === "Event" ? "bg-fuchsia-400" :
+                    "bg-blue-400"
+                }`}></div>
 
               <div className="relative z-10">
                 <div className="flex justify-between items-center mb-4">
                   <span
-                    className={`px-3 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-full flex items-center gap-1.5 border backdrop-blur-md shadow-sm ${
-                      featuredPengumuman.category === "Urgent" 
-                        ? "bg-red-50/80 dark:bg-red-500/20 border-red-200/60 dark:border-red-500/30 text-red-700 dark:text-red-300" 
-                        : featuredPengumuman.category === "Event" 
-                          ? "bg-indigo-50/80 dark:bg-indigo-500/20 border-indigo-200/60 dark:border-indigo-500/30 text-indigo-700 dark:text-indigo-300" 
+                    className={`px-3 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-full flex items-center gap-1.5 border backdrop-blur-md shadow-sm ${featuredPengumuman.category === "Urgent"
+                        ? "bg-red-50/80 dark:bg-red-500/20 border-red-200/60 dark:border-red-500/30 text-red-700 dark:text-red-300"
+                        : featuredPengumuman.category === "Event"
+                          ? "bg-indigo-50/80 dark:bg-indigo-500/20 border-indigo-200/60 dark:border-indigo-500/30 text-indigo-700 dark:text-indigo-300"
                           : "bg-blue-50/80 dark:bg-blue-500/20 border-blue-200/60 dark:border-blue-500/30 text-blue-700 dark:text-blue-300"
-                    }`}
+                      }`}
                   >
                     <Icon
                       icon={
@@ -326,22 +325,21 @@ const UserDashboard = () => {
                     />
                     {featuredPengumuman.category}
                   </span>
-                  <span className={`text-[10px] font-black tracking-widest uppercase ${
-                    featuredPengumuman.category === "Urgent" ? "text-red-500/80 dark:text-red-400" :
-                    featuredPengumuman.category === "Event" ? "text-indigo-500/80 dark:text-indigo-400" :
-                    "text-blue-500/80 dark:text-blue-400"
-                  }`}>
+                  <span className={`text-[10px] font-black tracking-widest uppercase ${featuredPengumuman.category === "Urgent" ? "text-red-500/80 dark:text-red-400" :
+                      featuredPengumuman.category === "Event" ? "text-indigo-500/80 dark:text-indigo-400" :
+                        "text-blue-500/80 dark:text-blue-400"
+                    }`}>
                     {new Date(featuredPengumuman.created_at).toLocaleDateString(
                       "id-ID",
                       { day: "2-digit", month: "short", year: "numeric" },
                     )}
                   </span>
                 </div>
-                
+
                 <h3 className="text-[18px] font-black leading-tight mb-2 tracking-tight text-slate-800 dark:text-white drop-shadow-sm">
                   {featuredPengumuman.title}
                 </h3>
-                
+
                 <p className="text-xs font-semibold text-slate-600/90 dark:text-slate-300/90 line-clamp-2 leading-relaxed">
                   {featuredPengumuman.content}
                 </p>
@@ -468,7 +466,7 @@ const UserDashboard = () => {
                         125.6 -
                         (Math.min(stat.val, stats.totalHari) /
                           stats.totalHari) *
-                          125.6
+                        125.6
                       }
                       className={stat.color}
                     />
@@ -497,100 +495,100 @@ const UserDashboard = () => {
           </div>
 
           {isLoading ? (
-             <div className="space-y-4 animate-pulse">
-                <div className="h-16 bg-slate-100 dark:bg-slate-800 rounded-[24px]"></div>
-                <div className="flex gap-4">
-                   <div className="h-14 flex-1 bg-slate-100 dark:bg-slate-800 rounded-[20px]"></div>
-                   <div className="h-14 flex-1 bg-slate-100 dark:bg-slate-800 rounded-[20px]"></div>
-                </div>
-                <div className="h-14 bg-indigo-100 dark:bg-indigo-900/30 rounded-[16px]"></div>
-             </div>
+            <div className="space-y-4 animate-pulse">
+              <div className="h-16 bg-slate-100 dark:bg-slate-800 rounded-[24px]"></div>
+              <div className="flex gap-4">
+                <div className="h-14 flex-1 bg-slate-100 dark:bg-slate-800 rounded-[20px]"></div>
+                <div className="h-14 flex-1 bg-slate-100 dark:bg-slate-800 rounded-[20px]"></div>
+              </div>
+              <div className="h-14 bg-indigo-100 dark:bg-indigo-900/30 rounded-[16px]"></div>
+            </div>
           ) : (() => {
-             const activeShift = session.shift || shiftToday;
-             if (!activeShift && !session.todayRecord) {
-                 return (
-                   <div className="w-full bg-slate-50 dark:bg-[#0f172a]/50 py-10 rounded-[28px] text-center flex flex-col items-center justify-center gap-3 border border-slate-200 dark:border-white/5">
-                      <div className="h-14 w-14 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-1">
-                        <Icon icon="ph:calendar-x-duotone" className="text-3xl text-slate-300 dark:text-slate-600" />
-                      </div>
-                      <div className="space-y-1">
-                        <span className="font-black text-slate-500 dark:text-slate-400 block text-sm tracking-tight">Tidak Ada Jadwal Shift</span>
-                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest block">{debugDay || "HARI LIBUR"}</span>
-                      </div>
-                   </div>
-                 );
-             }
-
-             const shiftColor = activeShift?.warna || "#3b82f6";
-             const shiftName = activeShift?.nama || "Shift Tidak Diketahui";
-             const jamMasuk = activeShift?.jam_masuk?.substring(0, 5) || "--.--";
-             const jamPulang = activeShift?.jam_pulang?.substring(0, 5) || "--.--";
-             const timeNowStr = now.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }).replace(":", ".");
-
-             return (
-                <div className="space-y-4">
-                   <div className="bg-[#1e293b]/5 dark:bg-[#0f1523] p-5 rounded-[24px] flex items-center justify-between border border-slate-200 dark:border-white/5">
-                      <div className="flex items-center gap-4">
-                        <div className="h-6 w-6 rounded-full flex items-center justify-center bg-white/5" style={{ backgroundColor: `${shiftColor}20` }}>
-                          <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: shiftColor, boxShadow: `0 0 8px ${shiftColor}` }}></div>
-                        </div>
-                        <h4 className="font-bold text-[15px] text-slate-800 dark:text-white">
-                          {shiftName}
-                        </h4>
-                      </div>
-                      <div className="text-right">
-                         <p className="font-bold text-[10px] text-slate-500 dark:text-slate-400 mb-0.5">Hari ini</p>
-                         <p className="font-bold text-xs text-slate-800 dark:text-white">{timeNowStr}</p>
-                      </div>
-                   </div>
-
-                   <div className="flex flex-col sm:flex-row gap-4">
-                      <div className="flex-1 bg-[#1e293b]/5 dark:bg-[#0f1523] p-4 rounded-[20px] flex items-center gap-3 border border-slate-200 dark:border-white/5">
-                         <div className="h-5 w-5 rounded-full flex items-center justify-center bg-blue-500/20">
-                           <div className="h-2 w-2 rounded-full shadow-[0_0_6px_rgba(59,130,246,0.8)] bg-blue-600"></div>
-                         </div>
-                         <div>
-                           <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-0.5">Jam Masuk</p>
-                           <p className="text-sm font-bold text-slate-800 dark:text-white">{jamMasuk.replace(':', '.')}</p>
-                         </div>
-                      </div>
-                      <div className="flex-1 bg-[#1e293b]/5 dark:bg-[#0f1523] p-4 rounded-[20px] flex items-center gap-3 border border-slate-200 dark:border-white/5">
-                         <div className="h-5 w-5 rounded-full flex items-center justify-center bg-red-500/20">
-                           <div className="h-2 w-2 rounded-full shadow-[0_0_6px_rgba(220,38,38,0.8)] bg-red-600"></div>
-                         </div>
-                         <div>
-                           <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-0.5">Jam Pulang</p>
-                           <p className="text-sm font-bold text-slate-800 dark:text-white">{jamPulang.replace(':', '.')}</p>
-                         </div>
-                      </div>
-                   </div>
-
-                   {/* Action Banner */}
-                   {!session.isCheckedIn && (
-                      <button onClick={() => navigate('/user/scanner')} className="w-full bg-indigo-600 hover:bg-indigo-500 active:scale-95 transition-all py-4 rounded-[16px] flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/30">
-                         <Icon icon="ph:qr-code-bold" className="text-xl text-white" />
-                         <span className="font-bold text-white text-[15px]">Scan</span>
-                      </button>
-                   )}
-                   {session.isCheckedIn && !session.isCompleted && (
-                      canCheckout ? (
-                          <button onClick={() => navigate('/user/scanner')} className="w-full bg-indigo-600 hover:bg-indigo-500 active:scale-95 transition-all py-4 rounded-[16px] flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/30">
-                             <Icon icon="ph:qr-code-bold" className="text-xl text-white" />
-                             <span className="font-bold text-white text-[15px]">Scan</span>
-                          </button>
-                      ) : (
-                          <div className="w-full bg-indigo-600 py-4 rounded-[16px] text-center shadow-lg shadow-indigo-600/30 border border-indigo-500">
-                             <span className="font-bold text-white text-[15px]">Sisa {timeLeft || "--.--.--"}</span>
-                          </div>
-                      )
-                   )}
-                   {session.isCompleted && (
-                      <div className="w-full bg-indigo-600 py-4 rounded-[16px] text-center shadow-lg shadow-indigo-600/30 border border-indigo-500">
-                         <span className="font-bold text-white text-[15px]">Hari ini sudah selesai</span>
-                      </div>
-                   )}
+            const activeShift = session.shift || shiftToday;
+            if (!activeShift && !session.todayRecord) {
+              return (
+                <div className="w-full bg-slate-50 dark:bg-[#0f172a]/50 py-10 rounded-[28px] text-center flex flex-col items-center justify-center gap-3 border border-slate-200 dark:border-white/5">
+                  <div className="h-14 w-14 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-1">
+                    <Icon icon="ph:calendar-x-duotone" className="text-3xl text-slate-300 dark:text-slate-600" />
+                  </div>
+                  <div className="space-y-1">
+                    <span className="font-black text-slate-500 dark:text-slate-400 block text-sm tracking-tight">Tidak Ada Jadwal Shift</span>
+                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest block">{debugDay || "HARI LIBUR"}</span>
+                  </div>
                 </div>
-             );
+              );
+            }
+
+            const shiftColor = activeShift?.warna || "#3b82f6";
+            const shiftName = activeShift?.nama || "Shift Tidak Diketahui";
+            const jamMasuk = activeShift?.jam_masuk?.substring(0, 5) || "--.--";
+            const jamPulang = activeShift?.jam_pulang?.substring(0, 5) || "--.--";
+            const timeNowStr = now.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }).replace(":", ".");
+
+            return (
+              <div className="space-y-4">
+                <div className="bg-[#1e293b]/5 dark:bg-[#0f1523] p-5 rounded-[24px] flex items-center justify-between border border-slate-200 dark:border-white/5">
+                  <div className="flex items-center gap-4">
+                    <div className="h-6 w-6 rounded-full flex items-center justify-center bg-white/5" style={{ backgroundColor: `${shiftColor}20` }}>
+                      <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: shiftColor, boxShadow: `0 0 8px ${shiftColor}` }}></div>
+                    </div>
+                    <h4 className="font-bold text-[15px] text-slate-800 dark:text-white">
+                      {shiftName}
+                    </h4>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-bold text-[10px] text-slate-500 dark:text-slate-400 mb-0.5">Hari ini</p>
+                    <p className="font-bold text-xs text-slate-800 dark:text-white">{timeNowStr}</p>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="flex-1 bg-[#1e293b]/5 dark:bg-[#0f1523] p-4 rounded-[20px] flex items-center gap-3 border border-slate-200 dark:border-white/5">
+                    <div className="h-5 w-5 rounded-full flex items-center justify-center bg-blue-500/20">
+                      <div className="h-2 w-2 rounded-full shadow-[0_0_6px_rgba(59,130,246,0.8)] bg-blue-600"></div>
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-0.5">Jam Masuk</p>
+                      <p className="text-sm font-bold text-slate-800 dark:text-white">{jamMasuk.replace(':', '.')}</p>
+                    </div>
+                  </div>
+                  <div className="flex-1 bg-[#1e293b]/5 dark:bg-[#0f1523] p-4 rounded-[20px] flex items-center gap-3 border border-slate-200 dark:border-white/5">
+                    <div className="h-5 w-5 rounded-full flex items-center justify-center bg-red-500/20">
+                      <div className="h-2 w-2 rounded-full shadow-[0_0_6px_rgba(220,38,38,0.8)] bg-red-600"></div>
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-0.5">Jam Pulang</p>
+                      <p className="text-sm font-bold text-slate-800 dark:text-white">{jamPulang.replace(':', '.')}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Banner */}
+                {!session.isCheckedIn && (
+                  <button onClick={() => navigate('/user/scanner')} className="w-full bg-indigo-600 hover:bg-indigo-500 active:scale-95 transition-all py-4 rounded-[16px] flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/30">
+                    <Icon icon="ph:qr-code-bold" className="text-xl text-white" />
+                    <span className="font-bold text-white text-[15px]">Scan</span>
+                  </button>
+                )}
+                {session.isCheckedIn && !session.isCompleted && (
+                  canCheckout ? (
+                    <button onClick={() => navigate('/user/scanner')} className="w-full bg-indigo-600 hover:bg-indigo-500 active:scale-95 transition-all py-4 rounded-[16px] flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/30">
+                      <Icon icon="ph:qr-code-bold" className="text-xl text-white" />
+                      <span className="font-bold text-white text-[15px]">Scan</span>
+                    </button>
+                  ) : (
+                    <div className="w-full bg-indigo-600 py-4 rounded-[16px] text-center shadow-lg shadow-indigo-600/30 border border-indigo-500">
+                      <span className="font-bold text-white text-[15px]">Sisa {timeLeft || "--.--.--"}</span>
+                    </div>
+                  )
+                )}
+                {session.isCompleted && (
+                  <div className="w-full bg-indigo-600 py-4 rounded-[16px] text-center shadow-lg shadow-indigo-600/30 border border-indigo-500">
+                    <span className="font-bold text-white text-[15px]">Hari ini sudah selesai</span>
+                  </div>
+                )}
+              </div>
+            );
           })()}
         </div>
 
