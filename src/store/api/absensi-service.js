@@ -128,4 +128,8 @@ export const getAdminLedgers = async () => (await API.get("/admin/gamification/l
 // 4. Validasi Voucher Karyawan
 export const getAdminTokens = async () => (await API.get("/admin/gamification/tokens")).data;
 export const markTokenUsed = async (id) => (await API.post(`/admin/gamification/tokens/${id}/use`)).data;
+
+// 5. Analitik Integritas (Leaderboard)
+export const getAdminLeaderboard = async () => (await API.get("/admin/gamification/leaderboard")).data;
+
 export default API;

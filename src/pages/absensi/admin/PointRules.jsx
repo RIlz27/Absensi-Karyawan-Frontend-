@@ -3,531 +3,440 @@ import {
   getAdminRules, 
   deleteAdminRule, 
   createAdminRule, 
-  updateAdminRule 
+  updateAdminRule,
+  getAdminItems,
+  createAdminItem,
+  updateAdminItem,
+  deleteAdminItem,
+  getAdminLeaderboard
 } from "@/store/api/absensi-service.js";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Shield, Clock, Plus, Trash2, Edit3, Target, Zap, X, Save, Calculator, Users } from "lucide-react";
+import { 
+  Sparkles, Shield, Clock, Plus, Trash2, Edit3, Target, 
+  Zap, X, Save, Calculator, Users, ShoppingBag, 
+  Trophy, TrendingDown, TrendingUp, Info, Tag
+} from "lucide-react";
+import { Icon } from "@iconify/react";
 import Swal from "sweetalert2";
 import axios from "axios";
 
 const PointRules = () => {
+  const [activeMainTab, setActiveMainTab] = useState("quests");
   const [rules, setRules] = useState([]);
+  const [items, setItems] = useState([]);
+  const [leaderboard, setLeaderboard] = useState({ top: [], bottom: [] });
   const [isLoading, setIsLoading] = useState(true);
 
-  // Modal State
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalMode, setModalMode] = useState("create");
-  const [editingId, setEditingId] = useState(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState({
+  // Modal Quest State
+  const [isQuestModalOpen, setIsQuestModalOpen] = useState(false);
+  const [questModalMode, setQuestModalMode] = useState("create");
+  const [editingQuestId, setEditingQuestId] = useState(null);
+  const [questForm, setQuestForm] = useState({
     rule_name: "",
     target_role: "Semua",
     condition_operator: "<=",
     condition_value: "0",
-    point_modifier: 0,
-    tipe_quest: "waktu",
+    point_modifier: 10,
+    tipe_trigger: "waktu" // waktu, hadir, alfa
   });
 
-  // KASIR POIN (MANUAL ADJUSTMENT)
+  // Modal Item State
+  const [isItemModalOpen, setIsItemModalOpen] = useState(false);
+  const [itemModalMode, setItemModalMode] = useState("create");
+  const [editingItemId, setEditingItemId] = useState(null);
+  const [itemForm, setItemForm] = useState({
+    item_name: "",
+    type: "LATE_EXEMPTION",
+    value: 30,
+    point_cost: 100,
+    stock_limit: 50
+  });
+
+  // KASIR POIN
   const [isCashierModalOpen, setIsCashierModalOpen] = useState(false);
   const [usersList, setUsersList] = useState([]);
-  const [cashierForm, setCashierForm] = useState({
-    user_id: "",
-    amount: "",
-    reason: ""
-  });
+  const [cashierForm, setCashierForm] = useState({ user_id: "", amount: "", reason: "" });
 
-  const fetchUsersList = async () => {
+  const fetchData = async () => {
+    setIsLoading(true);
     try {
-      const token = localStorage.getItem("token") || sessionStorage.getItem("token");
-      const url = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api";
-      const response = await axios.get(`${url}/users`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setUsersList(response.data.data || response.data);
+      const [rulesData, itemsData, leaderboardData] = await Promise.all([
+        getAdminRules(),
+        getAdminItems(),
+        getAdminLeaderboard()
+      ]);
+      setRules(rulesData);
+      setItems(itemsData);
+      setLeaderboard(leaderboardData);
     } catch (error) {
-      console.error("Gagal menarik data user:", error);
-    }
-  };
-
-  useEffect(() => {
-    if (isCashierModalOpen && usersList.length === 0) {
-      fetchUsersList();
-    }
-  }, [isCashierModalOpen]);
-
-  const handleCashierSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const token = localStorage.getItem("token") || sessionStorage.getItem("token");
-      const url = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api";
-      await axios.post(`${url}/admin/gamification/manual-points`, cashierForm, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      Swal.fire({
-        background: "#1e293b",
-        color: "#ffffff",
-        title: "Poin Disetorkan!",
-        text: "Penyesuaian Manual berhasil dicatat.",
-        icon: "success",
-        timer: 2000,
-        showConfirmButton: false
-      });
-      setIsCashierModalOpen(false);
-      setCashierForm({ user_id: "", amount: "", reason: "" });
-    } catch (error) {
-      Swal.fire({
-        background: "#1e293b",
-        color: "#ffffff",
-        title: "Gagal",
-        text: error?.response?.data?.message || "Gagal menyesuaikan poin manual.",
-        icon: "error"
-      });
-    }
-  };
-
-  const fetchRules = async () => {
-    try {
-      const data = await getAdminRules();
-      setRules(data);
-    } catch (error) {
-      console.error("Gagal mengambil data rules:", error);
+      console.error("Gagal menarik data:", error);
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchRules();
+    fetchData();
   }, []);
 
-  const openCreateModal = () => {
-    setFormData({
-      rule_name: "",
-      target_role: "Semua",
-      condition_operator: "<=",
-      condition_value: "0",
-      point_modifier: 10,
-      tipe_quest: "hadir",
-    });
-    setModalMode("create");
-    setIsModalOpen(true);
-  };
-
-  const openEditModal = (rule) => {
-    let tipe = "waktu";
-    if (rule.condition_value === "HADIR") tipe = "hadir";
-    else if (rule.condition_value === "ALFA") tipe = "alfa";
-    
-    setFormData({
-      rule_name: rule.rule_name,
-      target_role: rule.target_role || "Semua",
-      condition_operator: rule.condition_operator,
-      condition_value: rule.condition_value,
-      point_modifier: rule.point_modifier,
-      tipe_quest: tipe,
-    });
-    setEditingId(rule.id);
-    setModalMode("edit");
-    setIsModalOpen(true);
-  };
-
-  const handleModalSubmit = async (e) => {
+  // --- QUEST LOGIC ---
+  const handleQuestSubmit = async (e) => {
     e.preventDefault();
-    setIsSubmitting(true);
     try {
-      const payload = { ...formData };
-      if (payload.tipe_quest === "hadir") {
-         payload.condition_operator = "==";
-         payload.condition_value = "HADIR";
-      } else if (payload.tipe_quest === "alfa") {
-         payload.condition_operator = "==";
-         payload.condition_value = "ALFA";
+      const payload = { ...questForm };
+      // Handle special triggers
+      if (payload.tipe_trigger === "hadir") {
+        payload.condition_operator = "=";
+        payload.condition_value = "HADIR";
+      } else if (payload.tipe_trigger === "alfa") {
+        payload.condition_operator = "=";
+        payload.condition_value = "ALFA";
       }
-      
-      if (modalMode === "create") {
+
+      if (questModalMode === "create") {
         await createAdminRule(payload);
-        Swal.fire({
-          title: "Berhasil!",
-          text: "Quest baru telah ditambahkan ke sistem.",
-          icon: "success",
-          background: "#1e293b",
-          color: "#f8fafc",
-          timer: 2000,
-          showConfirmButton: false
-        });
       } else {
-        await updateAdminRule(editingId, payload);
-        Swal.fire({
-          title: "Diperbarui!",
-          text: "Quest berhasil diperbarui.",
-          icon: "success",
-          background: "#1e293b",
-          color: "#f8fafc",
-          timer: 2000,
-          showConfirmButton: false
-        });
+        await updateAdminRule(editingQuestId, payload);
       }
-      setIsModalOpen(false);
-      fetchRules();
+      toastSuccess("Quest Berhasil Disimpan");
+      setIsQuestModalOpen(false);
+      fetchData();
     } catch (error) {
-      console.error("Error submit rule:", error);
-      Swal.fire({
-        title: "Gagal!",
-        text: "Terjadi kesalahan saat menyimpan pengaturan.",
-        icon: "error",
-        background: "#1e293b",
-        color: "#f8fafc",
-      });
-    } finally {
-      setIsSubmitting(false);
+      toastError("Gagal menyimpan Quest");
     }
   };
 
-  const handleDelete = async (id) => {
-    Swal.fire({
-      title: "Hapus Quest Ini?",
-      text: "Data Quest poin tidak bisa dikembalikan setelah dihapus.",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#ef4444",
-      cancelButtonColor: "#475569",
-      confirmButtonText: "Ya, Hancurkan!",
-      cancelButtonText: "Batal",
-      background: "#1e293b",
-      color: "#f8fafc",
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        try {
-          await deleteAdminRule(id);
-          setRules(rules.filter((rule) => rule.id !== id));
-          Swal.fire({
-            title: "Dihancurkan!",
-            text: "Quest berhasil dihapus.",
-            icon: "success",
-            background: "#1e293b",
-            color: "#f8fafc",
-            timer: 2000,
-            showConfirmButton: false
-          });
-        } catch (error) {
-          console.error("Gagal menghapus:", error);
-          Swal.fire({
-            title: "Gagal Hapus!",
-            text: "Terjadi kesalahan memusnahkan Quest.",
-            icon: "error",
-            background: "#1e293b",
-            color: "#f8fafc",
-          });
-        }
+  // --- ITEM LOGIC ---
+  const handleItemSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      if (itemModalMode === "create") {
+        await createAdminItem(itemForm);
+      } else {
+        await updateAdminItem(editingItemId, itemForm);
       }
-    });
+      toastSuccess("Voucher Berhasil Disimpan");
+      setIsItemModalOpen(false);
+      fetchData();
+    } catch (error) {
+      toastError("Gagal menyimpan Voucher");
+    }
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-[60vh] flex items-center justify-center">
-        <div className="relative flex items-center justify-center">
-          <div className="absolute w-20 h-20 border-4 border-indigo-500/30 rounded-full blur-sm animate-pulse"></div>
-          <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin z-10"></div>
-          <Sparkles className="absolute text-indigo-500 animate-ping opacity-50" />
-        </div>
-      </div>
-    );
-  }
+  const handleDeleteQuest = async (id) => {
+    const result = await confirmDelete("Hapus Quest ini?");
+    if (result.isConfirmed) {
+      await deleteAdminRule(id);
+      fetchData();
+    }
+  };
+
+  const handleDeleteItem = async (id) => {
+    const result = await confirmDelete("Hapus Voucher ini?");
+    if (result.isConfirmed) {
+      await deleteAdminItem(id);
+      fetchData();
+    }
+  };
+
+  // --- HELPERS ---
+  const toastSuccess = (msg) => Swal.fire({ title: msg, icon: "success", background: "#1e293b", color: "#fff", timer: 1500, showConfirmButton: false });
+  const toastError = (msg) => Swal.fire({ title: "Gagal", text: msg, icon: "error", background: "#1e293b", color: "#fff" });
+  const confirmDelete = (title) => Swal.fire({ title, text: "Tindakan ini tidak bisa dibatalkan!", icon: "warning", showCancelButton: true, confirmButtonColor: "#ef4444", background: "#1e293b", color: "#fff" });
+
+  if (isLoading) return <div className="h-screen flex items-center justify-center bg-[#0f172a]"><div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div></div>;
 
   return (
-    <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
-      {/* Header Section */}
-      <div className="relative mb-10 p-6 rounded-3xl overflow-hidden bg-gradient-to-br from-indigo-900 via-slate-900 to-slate-900 border border-indigo-500/20 shadow-2xl">
-        <div className="absolute -top-24 -right-24 w-64 h-64 bg-indigo-600 blur-[80px] rounded-full opacity-40 mix-blend-screen pointer-events-none"></div>
-        <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-purple-600 blur-[80px] rounded-full opacity-30 mix-blend-screen pointer-events-none"></div>
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
-
+    <div className="max-w-7xl mx-auto p-4 sm:p-8 min-h-screen bg-[#0f172a] text-slate-200">
+      
+      {/* HEADER SECTION */}
+      <div className="relative mb-8 p-8 rounded-[40px] bg-gradient-to-br from-indigo-900 via-slate-900 to-black border border-white/5 shadow-2xl overflow-hidden">
+        <div className="absolute -top-24 -right-24 w-96 h-96 bg-indigo-600/20 blur-[100px] rounded-full"></div>
         <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="text-center md:text-left">
-            <h1 className="text-3xl sm:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-300 via-white to-purple-300 drop-shadow flex items-center justify-center md:justify-start gap-3">
-              <Zap className="w-8 h-8 text-yellow-400 fill-yellow-400/20" />
-              Game Rules & Rewards
+          <div>
+            <h1 className="text-4xl font-black text-white flex items-center gap-3">
+              <Zap className="text-amber-400 fill-amber-400/20 w-10 h-10" />
+              Gamification Center
             </h1>
-            <p className="mt-2 text-indigo-200/80 font-medium max-w-xl">
-              Konfigurasi aturan poin dan reward layaknya game master. Tentukan kriteria pencapaian untuk guild member (pegawai).
+            <p className="mt-2 text-slate-400 font-medium max-w-lg">
+              Managerial integritas: Bangun aturan quest, kelola marketplace, dan pantau leaderboard karyawan.
             </p>
           </div>
-          <motion.button 
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={openCreateModal}
-            className="flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white px-6 py-3 rounded-xl font-bold shadow-[0_0_20px_rgba(99,102,241,0.4)] border border-indigo-400/30 transition-all z-10"
-          >
-            <Plus className="w-5 h-5 stroke-[3]" />
-            Tambah Quest 
-          </motion.button>
+          <div className="flex gap-3">
+            <button 
+              onClick={() => setIsQuestModalOpen(true)}
+              className="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-bold border border-indigo-400/30 flex items-center gap-2 transition-all shadow-lg shadow-indigo-600/20"
+            >
+              <Plus size={20} /> Quest Baru
+            </button>
+            <button 
+              onClick={() => { setItemModalMode("create"); setIsItemModalOpen(true); }}
+              className="px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-2xl font-bold border border-white/10 flex items-center gap-2 transition-all"
+            >
+              <ShoppingBag size={20} /> Tambah Voucher
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Grid of Rules Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <AnimatePresence>
-          {rules.length === 0 ? (
-            <motion.div 
-              initial={{ opacity: 0 }} 
-              animate={{ opacity: 1 }}
-              className="col-span-full py-16 text-center bg-slate-500/5 backdrop-blur-sm rounded-3xl border border-slate-500/10 border-dashed"
-            >
-              <Target className="w-16 h-16 mx-auto text-slate-400/50 mb-4" />
-              <p className="text-xl font-bold text-slate-600 dark:text-slate-400">Belum Ada Quest Aktif</p>
-              <p className="text-slate-500 dark:text-slate-500 mt-2">Buat aturan poin pertama untuk memulai gamifikasi!</p>
-            </motion.div>
-          ) : (
-            rules.map((rule, idx) => (
-              <motion.div
-                layout
-                initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9, filter: "blur(10px)" }}
-                transition={{ duration: 0.3, delay: idx * 0.05 }}
-                key={rule.id}
-                className="group relative p-6 rounded-3xl bg-white/70 dark:bg-[#111322]/80 backdrop-blur-xl border border-slate-200/80 dark:border-indigo-500/20 shadow-lg dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] hover:shadow-indigo-500/10 dark:hover:border-indigo-500/50 overflow-hidden transition-all duration-500"
-              >
-                <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-indigo-500/10 dark:bg-indigo-600/20 blur-[40px] rounded-full transition-all duration-700 group-hover:bg-indigo-500/30 group-hover:scale-150"></div>
-                
-                <div className="relative z-10 flex justify-between items-start">
-                  <div className="pr-4">
-                    <h3 className="text-xl font-black text-slate-800 dark:text-white flex items-center gap-2.5">
-                      <Sparkles className="w-5 h-5 text-indigo-500 drop-shadow-[0_0_8px_rgba(99,102,241,0.5)]" />
-                      {rule.rule_name}
-                    </h3>
-                    <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold uppercase tracking-wider bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300 rounded-lg border border-indigo-200 dark:border-indigo-500/30">
-                      <Shield className="w-3.5 h-3.5" />
-                      {rule.target_role}
-                    </div>
-                  </div>
-                  
-                  <div className="flex flex-col items-center justify-center shrink-0 w-20 h-20 rounded-2xl bg-gradient-to-br from-slate-100 to-white dark:from-slate-800/80 dark:to-slate-900/80 border border-slate-200 dark:border-slate-700 shadow-inner">
-                    <span className={`text-2xl font-black tracking-tighter ${
-                      rule.point_modifier > 0 
-                      ? 'text-emerald-500 dark:text-emerald-400 drop-shadow-[0_2px_8px_rgba(16,185,129,0.4)]' 
-                      : 'text-rose-500 dark:text-rose-400 drop-shadow-[0_2px_8px_rgba(244,63,94,0.4)]'
-                    }`}>
-                      {rule.point_modifier > 0 ? `+${rule.point_modifier}` : rule.point_modifier}
-                    </span>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">PTS</span>
-                  </div>
-                </div>
-
-                <div className="relative z-10 mt-6 bg-slate-50 dark:bg-[#0A0D18]/60 rounded-2xl p-4 border border-slate-200/60 dark:border-slate-700/50 shadow-inner">
-                  <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-xl ${
-                      rule.condition_value === 'HADIR' ? 'bg-emerald-100 dark:bg-emerald-500/20' :
-                      rule.condition_value === 'ALFA' ? 'bg-rose-100 dark:bg-rose-500/20' :
-                      'bg-indigo-100 dark:bg-indigo-500/20'
-                    }`}>
-                      <Clock className={`w-4 h-4 ${
-                        rule.condition_value === 'HADIR' ? 'text-emerald-600 dark:text-emerald-400' :
-                        rule.condition_value === 'ALFA' ? 'text-rose-600 dark:text-rose-400' :
-                        'text-indigo-600 dark:text-indigo-400'
-                      }`} />
-                    </div>
-                    <div>
-                      <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wide">
-                        {rule.condition_value === 'HADIR' ? 'Trigger Otomatis' : 
-                         rule.condition_value === 'ALFA' ? 'Trigger Bot/Cron' : 'Kondisi Relatif Shift'}
-                      </p>
-                      <p className="font-mono text-sm font-bold text-slate-700 dark:text-slate-200 mt-0.5">
-                        {rule.condition_value === 'HADIR' ? (
-                          <span className="text-emerald-500">SETIAP ABSEN MASUK</span>
-                        ) : rule.condition_value === 'ALFA' ? (
-                          <span className="text-rose-500">TIDAK HADIR (ALFA)</span>
-                        ) : (
-                          <>TELAT <span className="text-indigo-500 mx-1">{rule.condition_operator}</span> {rule.condition_value} <span className="text-xs text-slate-400">MNT</span></>
-                        )}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="relative z-10 flex justify-end gap-2 mt-6 pt-5 border-t border-slate-200 dark:border-slate-800/80">
-                  <motion.button 
-                    whileHover={{ scale: 1.1, backgroundColor: "rgba(99,102,241,0.1)" }}
-                    whileTap={{ scale: 0.9 }}
-                    onClick={() => openEditModal(rule)}
-                    className="p-2.5 text-slate-400 hover:text-indigo-500 rounded-xl transition-colors bg-slate-50 dark:bg-slate-800/50"
-                  >
-                    <Edit3 className="w-5 h-5" />
-                  </motion.button>
-                  <motion.button 
-                    whileHover={{ scale: 1.1, backgroundColor: "rgba(244,63,94,0.1)" }}
-                    whileTap={{ scale: 0.9 }}
-                    onClick={() => handleDelete(rule.id)}
-                    className="p-2.5 text-slate-400 hover:text-rose-500 rounded-xl transition-colors bg-slate-50 dark:bg-slate-800/50"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                  </motion.button>
-                </div>
-              </motion.div>
-            ))
-          )}
-        </AnimatePresence>
+      {/* MAIN NAVIGATION TABS */}
+      <div className="flex gap-2 p-1.5 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 mb-8 max-w-md">
+        {[
+          { id: "quests", label: "Quest Master", icon: Target },
+          { id: "shop", label: "Shop Manager", icon: Tag },
+          { id: "leaderboard", label: "Analytics", icon: Trophy },
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveMainTab(tab.id)}
+            className={`flex-1 py-3 text-xs font-bold rounded-xl flex items-center justify-center gap-2 transition-all ${
+              activeMainTab === tab.id ? "bg-indigo-600 text-white shadow-lg" : "text-slate-400 hover:text-white"
+            }`}
+          >
+            <tab.icon size={16} />
+            {tab.label}
+          </button>
+        ))}
       </div>
 
-      {/* Frame Motion Modal for Create / Edit */}
-      <AnimatePresence>
-        {isModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIsModalOpen(false)}
-              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
-            ></motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.5)] border border-slate-200 dark:border-slate-700 overflow-hidden"
-            >
-              {/* Modal Header */}
-              <div className="px-6 py-5 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
-                <h3 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-indigo-500" />
-                  {modalMode === "create" ? "Buat Quest Baru" : "Edit Quest Aktif"}
-                </h3>
-                <button 
-                  onClick={() => setIsModalOpen(false)}
-                  className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-white bg-white dark:bg-slate-800 rounded-full drop-shadow-sm transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              {/* Modal Body Form */}
-              <form onSubmit={handleModalSubmit} className="p-6 space-y-5">
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                    Nama Quest
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.rule_name}
-                    onChange={(e) => setFormData({ ...formData, rule_name: e.target.value })}
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-medium placeholder-slate-400"
-                    placeholder="Contoh: Datang Lebih Awal, Telat Banget..."
-                  />
+      <AnimatePresence mode="wait">
+        
+        {/* --- TAB: QUESTS --- */}
+        {activeMainTab === "quests" && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          >
+            {rules.map((rule) => (
+              <div key={rule.id} className="p-6 rounded-[32px] bg-white/5 border border-white/10 hover:border-indigo-500/50 transition-all group relative overflow-hidden">
+                <div className="flex justify-between items-start mb-6">
+                  <div>
+                    <h3 className="text-xl font-bold text-white mb-1">{rule.rule_name}</h3>
+                    <span className="px-3 py-1 bg-indigo-500/10 text-indigo-400 text-[10px] font-bold uppercase rounded-lg border border-indigo-500/20">
+                      {rule.target_role}
+                    </span>
+                  </div>
+                  <div className={`p-4 rounded-2xl bg-white/5 border border-white/10 text-center min-w-[70px] ${rule.point_modifier > 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                    <div className="text-2xl font-black">{rule.point_modifier > 0 ? "+" : ""}{rule.point_modifier}</div>
+                    <div className="text-[10px] uppercase font-bold opacity-50">Pts</div>
+                  </div>
+                </div>
+                
+                <div className="p-4 bg-black/40 rounded-2xl border border-white/5 mb-6">
+                   <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Requirement</p>
+                   <p className="text-sm font-semibold text-slate-200">
+                      {rule.condition_value === "HADIR" ? "Check-in Berhasil" : 
+                       rule.condition_value === "ALFA" ? "Tidak Ada Kehadiran" : 
+                       `Telat ${rule.condition_operator} ${rule.condition_value} Menit`}
+                   </p>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                    Tipe Quest (Kondisi Trigger)
-                  </label>
-                  <select
-                    value={formData.tipe_quest}
-                    onChange={(e) => setFormData({ ...formData, tipe_quest: e.target.value })}
-                    className="w-full px-4 py-3 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-700/50 rounded-xl text-indigo-900 dark:text-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold"
+                <div className="flex justify-end gap-2">
+                  <button 
+                    onClick={() => { setQuestModalMode("edit"); setEditingQuestId(rule.id); setQuestForm({...rule, tipe_trigger: rule.condition_value === "HADIR" ? "hadir" : rule.condition_value === "ALFA" ? "alfa" : "waktu"}); setIsQuestModalOpen(true); }}
+                    className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl transition-colors"
                   >
-                    <option value="hadir">Poin Dasar Kehadiran (Otomatis saat Absen Masuk)</option>
-                    <option value="waktu">Poin Waktu Kehadiran (Disiplin/Telat)</option>
-                    <option value="alfa">Poin Alfa (Sanksi Otomatis jika Tidak Absen)</option>
-                  </select>
+                    <Edit3 size={18} />
+                  </button>
+                  <button onClick={() => handleDeleteQuest(rule.id)} className="p-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 rounded-xl transition-colors">
+                    <Trash2 size={18} />
+                  </button>
                 </div>
+              </div>
+            ))}
+          </motion.div>
+        )}
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                      Target Role
-                    </label>
-                    <select
-                      value={formData.target_role}
-                      onChange={(e) => setFormData({ ...formData, target_role: e.target.value })}
-                      className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
-                    >
-                      <option value="Semua">Semua Role</option>
-                      <option value="karyawan">Karyawan</option>
-                      <option value="admin">Admin</option>
-                    </select>
+        {/* --- TAB: SHOP MANAGER --- */}
+        {activeMainTab === "shop" && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+          >
+            {items.map((item) => (
+              <div key={item.id} className="p-6 rounded-[32px] bg-slate-900 border border-white/5 flex flex-col items-center text-center">
+                <div className="h-20 w-20 rounded-3xl bg-indigo-600/20 flex items-center justify-center mb-4">
+                  <Icon icon={item.type === "LATE_EXEMPTION" ? "ph:ticket-duotone" : "ph:gift-duotone"} className="text-4xl text-indigo-400" />
+                </div>
+                <h3 className="font-bold text-white mb-1">{item.item_name}</h3>
+                <p className="text-xs text-slate-500 mb-4 px-2 italic">
+                  {item.type === "LATE_EXEMPTION" ? `Bebas terlambat hingga ${item.value} menit.` : "Reward khusus integritas."}
+                </p>
+                <div className="w-full flex justify-between items-center p-3 bg-black/40 rounded-2xl mb-6">
+                  <div className="text-left">
+                    <p className="text-[10px] text-slate-500 uppercase font-bold">Harga</p>
+                    <p className="text-amber-400 font-bold">{item.point_cost} Pts</p>
                   </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                      Poin Reward / Denda
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="number"
-                        required
-                        value={formData.point_modifier}
-                        onChange={(e) => setFormData({ ...formData, point_modifier: e.target.value })}
-                        className="w-full pl-4 pr-12 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold"
-                        placeholder="10 / -5"
-                      />
-                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">PTS</span>
-                    </div>
+                  <div className="text-right">
+                    <p className="text-[10px] text-slate-500 uppercase font-bold">Stok</p>
+                    <p className="text-white font-bold">{item.stock_limit || "∞"}</p>
                   </div>
                 </div>
+                <div className="flex gap-2 w-full mt-auto">
+                   <button 
+                     onClick={() => { setItemModalMode("edit"); setEditingItemId(item.id); setItemForm(item); setIsItemModalOpen(true); }}
+                     className="flex-1 py-2 bg-white/5 rounded-xl text-xs font-bold hover:bg-white/10 transition-colors"
+                   >Edit</button>
+                   <button onClick={() => handleDeleteItem(item.id)} className="p-2 bg-rose-500/10 text-rose-500 rounded-xl hover:bg-rose-500/20"><Trash2 size={16}/></button>
+                </div>
+              </div>
+            ))}
+          </motion.div>
+        )}
 
-                {formData.tipe_quest === 'waktu' && (
-                  <div className="p-4 bg-indigo-50 dark:bg-indigo-500/10 rounded-2xl border border-indigo-100 dark:border-indigo-500/20">
-                    <label className="block text-sm font-bold text-indigo-800 dark:text-indigo-300 mb-2 flex items-center gap-2">
-                      <Clock className="w-4 h-4" /> Toleransi Telat dari Shift (Menit)
-                    </label>
-                    <p className="text-[11px] text-indigo-600 dark:text-indigo-400 mb-3 font-medium leading-relaxed">
-                      Lebih terukur! Tidak perlu ganti walau Admin mengganti jadwal shift.<br/>
-                      Misal: <strong className="text-indigo-700 dark:text-indigo-300">{"<="} 0</strong> berarti Tepat, <strong className="text-indigo-700 dark:text-indigo-300">{">"} 15</strong> berarti Telat 15 Mnt.
-                    </p>
-                    <div className="flex gap-3">
-                      <select
-                        value={formData.condition_operator}
-                        onChange={(e) => setFormData({ ...formData, condition_operator: e.target.value })}
-                        className="w-1/2 px-3 py-2.5 bg-white dark:bg-slate-800 border border-indigo-200 dark:border-indigo-500/30 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-center"
-                      >
-                        <option value="<">Kurang dari ( {"<"} )</option>
-                        <option value="<=">Maksimal ( {"<="} )</option>
-                        <option value=">">Lebih dari ( {">"} )</option>
-                        <option value=">=">Minimal ( {">="} )</option>
-                        <option value="==">Tepat ( {"=="} )</option>
-                      </select>
-                      
-                      <div className="relative w-1/2">
-                        <input
-                          type="number"
-                          required={formData.tipe_quest === 'waktu'}
-                          value={formData.condition_value}
-                          onChange={(e) => setFormData({ ...formData, condition_value: e.target.value })}
-                          className="w-full pl-4 pr-12 py-2.5 bg-white dark:bg-slate-800 border border-indigo-200 dark:border-indigo-500/30 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono font-bold"
-                          placeholder="Contoh: 15"
-                        />
-                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">MNT</span>
+        {/* --- TAB: LEADERBOARD --- */}
+        {activeMainTab === "leaderboard" && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
+            className="grid grid-cols-1 lg:grid-cols-2 gap-8"
+          >
+            {/* TOP PERFORMERS */}
+            <div className="bg-white/5 p-8 rounded-[40px] border border-emerald-500/20 shadow-xl shadow-emerald-900/5">
+              <h2 className="text-2xl font-black text-emerald-400 mb-8 flex items-center gap-3">
+                <TrendingUp size={28} />
+                Elite Integrity (Top 10)
+              </h2>
+              <div className="space-y-4">
+                {leaderboard.top.map((user, idx) => (
+                  <div key={user.id} className="flex items-center justify-between p-4 bg-black/20 rounded-2xl border border-white/5">
+                    <div className="flex items-center gap-4">
+                      <div className="text-xl font-black text-slate-600 min-w-[24px]">#{idx + 1}</div>
+                      <div className="h-12 w-12 rounded-full bg-slate-800 flex items-center justify-center overflow-hidden border border-white/10">
+                        {user.avatar ? <img src={user.avatar} className="h-full w-full object-cover" /> : <Users size={24} className="text-slate-500" />}
+                      </div>
+                      <div>
+                        <p className="font-bold text-white text-sm">{user.name}</p>
+                        <p className="text-[10px] text-slate-500 uppercase font-bold tracking-widest">{user.role}</p>
                       </div>
                     </div>
+                    <div className="px-4 py-2 bg-emerald-500/10 text-emerald-400 rounded-xl font-black text-lg border border-emerald-500/20">
+                      {user.points} <span className="text-[10px] text-emerald-600 ml-1">PTS</span>
+                    </div>
                   </div>
-                )}
+                ))}
+              </div>
+            </div>
 
-                {/* Modal Footer */}
-                <div className="pt-4 flex gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setIsModalOpen(false)}
-                    className="flex-1 px-4 py-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-bold transition-colors"
-                  >
-                    Batal
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="flex-1 flex justify-center items-center gap-2 px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-lg shadow-indigo-500/30 transition-all disabled:opacity-70"
-                  >
-                    {isSubmitting ? (
-                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                    ) : (
-                      <>
-                        <Save className="w-5 h-5" />
-                        Simpan Quest
-                      </>
-                    )}
-                  </button>
+            {/* BOTTOM PERFORMERS */}
+            <div className="bg-white/5 p-8 rounded-[40px] border border-rose-500/20 shadow-xl shadow-rose-900/5">
+              <h2 className="text-2xl font-black text-rose-400 mb-8 flex items-center gap-3">
+                <TrendingDown size={28} />
+                Low Integrity (Bottom 10)
+              </h2>
+              <div className="space-y-4">
+                {leaderboard.bottom.map((user, idx) => (
+                  <div key={user.id} className="flex items-center justify-between p-4 bg-black/20 rounded-2xl border border-white/5">
+                    <div className="flex items-center gap-4">
+                      <div className="text-xl font-black text-slate-600 min-w-[24px]">#{idx + 1}</div>
+                      <div className="h-12 w-12 rounded-full bg-slate-800 flex items-center justify-center overflow-hidden border border-white/10">
+                        {user.avatar ? <img src={user.avatar} className="h-full w-full object-cover" /> : <Users size={24} className="text-slate-500" />}
+                      </div>
+                      <div>
+                        <p className="font-bold text-white text-sm">{user.name}</p>
+                        <p className="text-[10px] text-slate-500 uppercase font-bold tracking-widest">{user.role}</p>
+                      </div>
+                    </div>
+                    <div className="px-4 py-2 bg-rose-500/10 text-rose-400 rounded-xl font-black text-lg border border-rose-500/20">
+                      {user.points} <span className="text-[10px] text-rose-600 ml-1">PTS</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+      </AnimatePresence>
+
+      {/* --- MODAL: RULE BUILDER (QUEST) --- */}
+      <AnimatePresence>
+        {isQuestModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-y-auto bg-black/80 backdrop-blur-md">
+            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-[#1e293b] w-full max-w-2xl rounded-[40px] border border-white/10 shadow-2xl overflow-hidden p-8"
+            >
+              <div className="flex justify-between items-center mb-8">
+                <h2 className="text-2xl font-black text-white flex items-center gap-3">
+                  <Sparkles className="text-indigo-400" /> Rule Statement Builder
+                </h2>
+                <button onClick={() => setIsQuestModalOpen(false)} className="p-2 bg-white/5 rounded-full hover:bg-white/10 text-slate-400"><X /></button>
+              </div>
+
+              <form onSubmit={handleQuestSubmit} className="space-y-8">
+                {/* Rule Name */}
+                <div className="bg-black/20 p-6 rounded-3xl border border-white/5">
+                   <label className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 block">JUDUL QUEST</label>
+                   <input 
+                      type="text" required value={questForm.rule_name} onChange={(e) => setQuestForm({...questForm, rule_name: e.target.value})}
+                      placeholder="Contoh: Sang Juara Disiplin"
+                      className="w-full bg-transparent text-2xl font-bold text-white focus:outline-none border-b-2 border-white/10 focus:border-indigo-500 pb-2"
+                   />
+                </div>
+
+                {/* STATEMENT BUILDER */}
+                <div className="bg-indigo-600/5 p-8 rounded-[32px] border border-indigo-500/20 text-lg sm:text-xl font-bold text-slate-200 leading-relaxed">
+                   JIKA User dengan Role 
+                   <div className="inline-block mx-2">
+                     <select 
+                       value={questForm.target_role} onChange={(e) => setQuestForm({...questForm, target_role: e.target.value})}
+                       className="bg-indigo-500/20 border border-indigo-500/30 rounded-xl px-3 py-1.5 focus:outline-none text-indigo-300"
+                     >
+                        <option value="Semua">Semua</option>
+                        <option value="karyawan">Karyawan</option>
+                        <option value="admin">Admin</option>
+                     </select>
+                   </div>
+                   melakukan 
+                   <div className="inline-block mx-2">
+                     <select 
+                       value={questForm.tipe_trigger} onChange={(e) => setQuestForm({...questForm, tipe_trigger: e.target.value})}
+                       className="bg-indigo-500/20 border border-indigo-500/30 rounded-xl px-3 py-1.5 focus:outline-none text-indigo-300"
+                     >
+                        <option value="hadir">Check-in Kehadiran</option>
+                        <option value="waktu">Check-in Waktu Tertentu</option>
+                        <option value="alfa">Tidak Masuk (Alfa)</option>
+                     </select>
+                   </div>
+
+                   {questForm.tipe_trigger === "waktu" && (
+                     <>
+                        dengan selisih menit 
+                        <div className="inline-block mx-2">
+                          <select 
+                             value={questForm.condition_operator} onChange={(e) => setQuestForm({...questForm, condition_operator: e.target.value})}
+                             className="bg-indigo-500/20 border border-indigo-500/30 rounded-xl px-3 py-1.5 focus:outline-none text-indigo-300"
+                          >
+                             <option value="<">{"<"}</option>
+                             <option value="<=">{"<="}</option>
+                             <option value=">">{">"}</option>
+                             <option value=">=">{">="}</option>
+                             <option value="=">{"="}</option>
+                          </select>
+                        </div>
+                        <div className="inline-block mx-2">
+                           <input 
+                              type="number" required value={questForm.condition_value} onChange={(e) => setQuestForm({...questForm, condition_value: e.target.value})}
+                              className="w-16 bg-white/5 border border-white/10 rounded-xl px-2 py-1.5 text-center focus:outline-none text-white font-mono"
+                           />
+                        </div>
+                        menit
+                     </>
+                   )}
+
+                   MAKA berikan 
+                   <div className="inline-block mx-2">
+                      <input 
+                        type="number" required value={questForm.point_modifier} onChange={(e) => setQuestForm({...questForm, point_modifier: e.target.value})}
+                        className="w-20 bg-emerald-500/20 border border-emerald-500/30 rounded-xl px-2 py-1.5 text-center focus:outline-none text-emerald-400 font-black"
+                      />
+                   </div>
+                   Poin.
+                </div>
+
+                <div className="pt-4">
+                   <button type="submit" className="w-full py-5 bg-indigo-600 hover:bg-indigo-500 text-white font-black rounded-3xl text-xl shadow-2xl shadow-indigo-600/40 transition-all flex items-center justify-center gap-3">
+                      <Save /> Simpan Aturan Quest
+                   </button>
                 </div>
               </form>
             </motion.div>
@@ -535,84 +444,48 @@ const PointRules = () => {
         )}
       </AnimatePresence>
 
-      {/* CASHIER MODAL */}
+      {/* --- MODAL: ITEM BUILDER (SHOP) --- */}
       <AnimatePresence>
-        {isCashierModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.95, opacity: 0, y: 20 }}
-              className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden border border-slate-200 dark:border-slate-800"
+        {isItemModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-[#1e293b] w-full max-w-md rounded-[40px] border border-white/10 shadow-2xl p-8"
             >
-              <div className="px-6 py-5 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
-                <h3 className="text-xl font-bold text-slate-800 dark:text-emerald-400 flex items-center gap-2">
-                  <Calculator className="w-5 h-5 text-emerald-500" />
-                  Kasir Poin (Penalti Manual)
-                </h3>
-                <button 
-                  onClick={() => setIsCashierModalOpen(false)}
-                  className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-white bg-white dark:bg-slate-800 rounded-full drop-shadow-sm transition-colors"
-                >
-                  <X className="w-5 h-5" />
+              <h2 className="text-2xl font-black text-white mb-8 flex items-center gap-3">
+                 <ShoppingBag className="text-amber-400" /> Katalog Voucher
+              </h2>
+              <form onSubmit={handleItemSubmit} className="space-y-6">
+                <div>
+                   <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">NAMA ITEM</label>
+                   <input type="text" required value={itemForm.item_name} onChange={(e) => setItemForm({...itemForm, item_name: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Misal: Voucher Bebas Telat 30m"/>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                   <div>
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">JENIS TOKEN</label>
+                      <select value={itemForm.type} onChange={(e) => setItemForm({...itemForm, type: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white outline-none">
+                         <option value="LATE_EXEMPTION">Bebas Terlambat</option>
+                         <option value="OTHER">Lainnya / Fisik</option>
+                      </select>
+                   </div>
+                   <div>
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">VALUE (MENIT)</label>
+                      <input type="number" required value={itemForm.value} onChange={(e) => setItemForm({...itemForm, value: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white outline-none"/>
+                   </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                   <div>
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">HARGA POIN</label>
+                      <input type="number" required value={itemForm.point_cost} onChange={(e) => setItemForm({...itemForm, point_cost: e.target.value})} className="w-full bg-amber-500/10 border border-amber-500/20 rounded-2xl px-4 py-3 text-amber-400 font-bold outline-none"/>
+                   </div>
+                   <div>
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">STOK LIMIT</label>
+                      <input type="number" value={itemForm.stock_limit} onChange={(e) => setItemForm({...itemForm, stock_limit: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white outline-none" placeholder="Kosongkan jika unlimited"/>
+                   </div>
+                </div>
+                <button type="submit" className="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-black rounded-3xl shadow-xl transition-all">
+                  Publish Voucher
                 </button>
-              </div>
-
-              <form onSubmit={handleCashierSubmit} className="p-6 space-y-5">
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5 items-center gap-2">
-                    <Users className="w-4 h-4" /> Karyawan
-                  </label>
-                  <select
-                    required
-                    value={cashierForm.user_id}
-                    onChange={(e) => setCashierForm({ ...cashierForm, user_id: e.target.value })}
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
-                  >
-                    <option value="" disabled>-- Pilih Karyawan --</option>
-                    {usersList.map(usr => (
-                      <option key={usr.id} value={usr.id}>{usr.name} ({usr.role})</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                    Jumlah Poin
-                  </label>
-                  <input
-                    type="number"
-                    required
-                    value={cashierForm.amount}
-                    onChange={(e) => setCashierForm({ ...cashierForm, amount: e.target.value })}
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 font-bold"
-                    placeholder="-50 (minus untuk denda)"
-                  />
-                  <p className="mt-1 text-[11px] text-slate-500">Isi minus (-) untuk memotong poin pelanggaran.</p>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                    Keterangan Penalti / Reward
-                  </label>
-                  <textarea
-                    required
-                    rows="3"
-                    value={cashierForm.reason}
-                    onChange={(e) => setCashierForm({ ...cashierForm, reason: e.target.value })}
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium resize-none"
-                    placeholder="Contoh: Terlambat tanpa info, buang sampah sembarangan..."
-                  />
-                </div>
-
-                <div className="pt-2">
-                  <button
-                    type="submit"
-                    className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-emerald-500/25 transition-all"
-                  >
-                    <Save className="w-5 h-5" /> Proses Kasir Poin
-                  </button>
-                </div>
+                <button type="button" onClick={() => setIsItemModalOpen(false)} className="w-full text-slate-500 font-bold py-2 hover:text-white transition-colors">Batal</button>
               </form>
             </motion.div>
           </div>
@@ -623,4 +496,5 @@ const PointRules = () => {
   );
 };
 
+// No custom Iconify needed as we use the real @iconify/react component
 export default PointRules;
