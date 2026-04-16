@@ -1,13 +1,24 @@
 import React, { useState, useEffect } from "react";
 import { Icon } from "@iconify/react";
 import { Link, useNavigate } from "react-router-dom";
-import API from "@/store/api/absensi-service.js";
+import API, { getPointStatus } from "@/store/api/absensi-service.js";
 import { useGetPengumumanUserQuery } from "@/store/api/pengumuman/pengumumanApiSlice";
 import PointBadge from "@/components/pointbadge";
+import Swal from "sweetalert2";
 
 const UserDashboard = () => {
   const navigate = useNavigate();
   const { data: pengumumans } = useGetPengumumanUserQuery();
+
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  // Ticker Real-time Jam (Biar Jam Digital Terus Berjalan)
+  useEffect(() => {
+    const clockTimer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => clearInterval(clockTimer);
+  }, []);
 
   // ... (keep state and useEffect the same)
   const [pengajuanLimit, setPengajuanLimit] = useState([]);
@@ -29,10 +40,11 @@ const UserDashboard = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [cutiRes, izinRes, historyRes] = await Promise.all([
+        const [cutiRes, izinRes, historyRes, pointStatusRes] = await Promise.all([
           API.get("/cuti"),
           API.get("/izin"),
           API.get("/history"),
+          getPointStatus()
         ]);
 
         // Format cuti
@@ -140,19 +152,40 @@ const UserDashboard = () => {
 
         setShiftToday(todayShift);
 
-        // Setup state session for today
-        const todayYYYY = now.getFullYear();
-        const todayMM = String(now.getMonth() + 1).padStart(2, '0');
-        const todayDD = String(now.getDate()).padStart(2, '0');
-        const todayStr = `${todayYYYY}-${todayMM}-${todayDD}`;
-
+        const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
         const todayRecord = historyRes.data.find(h => h.tanggal === todayStr);
 
         if (todayRecord) {
-          if (todayRecord.jam_pulang) {
-            setSession({ isCheckedIn: true, isCompleted: true, shift: todayRecord.shift, todayRecord });
-          } else {
-            setSession({ isCheckedIn: true, isCompleted: false, shift: todayRecord.shift, todayRecord });
+          setSession({ 
+            isCheckedIn: true, 
+            isCompleted: !!todayRecord.jam_pulang, 
+            shift: todayRecord.shift, 
+            todayRecord 
+          });
+
+          // POPUP NOTIFIKASI ALFA (SweetAlert2)
+          if (todayRecord.status === 'Alfa') {
+            const alreadyAlerted = sessionStorage.getItem(`alfa_alert_${todayStr}`);
+            if (!alreadyAlerted) {
+              const alfaLedger = (pointStatusRes.data?.history || []).find(l => 
+                l.description.toLowerCase().includes('alfa') && l.transaction_type === 'PENALTY'
+              );
+              
+              const ruleName = alfaLedger ? alfaLedger.description : "Penalti Tidak Masuk (ALFA)";
+              const amount = alfaLedger ? Math.abs(alfaLedger.amount) : "??";
+
+              Swal.fire({
+                title: "Yah, Kamu ALFA!",
+                html: `Kamu melewati jam shift tanpa absensi.<br><br><b class='text-danger'>${ruleName}</b><br>Poin kamu berkuran <b>-${amount}</b> poin.`,
+                icon: "warning",
+                confirmButtonText: "Saya Paham",
+                confirmButtonColor: "#6366f1",
+                footer: '<span class="text-xs text-slate-400 font-bold tracking-widest uppercase">Jangan sampai ketinggalan absen lagi ya!</span>',
+                showClass: { popup: 'animate__animated animate__fadeInDown' },
+                hideClass: { popup: 'animate__animated animate__fadeOutUp' }
+              });
+              sessionStorage.setItem(`alfa_alert_${todayStr}`, "true");
+            }
           }
         } else {
           setSession({ isCheckedIn: false, isCompleted: false, shift: null, todayRecord: null });
@@ -245,7 +278,7 @@ const UserDashboard = () => {
       if (!shiftToUse?.jam_pulang) return;
 
       timer = setInterval(() => {
-        const now = new Date();
+        const now = currentTime;
         const [hours, minutes, seconds] = shiftToUse.jam_pulang.split(':');
 
         const returnTime = new Date();
@@ -267,12 +300,11 @@ const UserDashboard = () => {
       }, 1000);
     }
     return () => clearInterval(timer);
-  }, [session, shiftToday]);
+  }, [session, shiftToday, currentTime]);
 
-  const now = new Date();
-  const tanggal = now.getDate();
-  const hari = now.toLocaleDateString("id-ID", { weekday: "long" });
-  const bulanTahun = now.toLocaleDateString("id-ID", {
+  const tanggal = currentTime.getDate();
+  const hari = currentTime.toLocaleDateString("id-ID", { weekday: "long" });
+  const bulanTahun = currentTime.toLocaleDateString("id-ID", {
     month: "long",
     year: "numeric",
   });
@@ -523,7 +555,7 @@ const UserDashboard = () => {
             const shiftName = activeShift?.nama || "Shift Tidak Diketahui";
             const jamMasuk = activeShift?.jam_masuk?.substring(0, 5) || "--.--";
             const jamPulang = activeShift?.jam_pulang?.substring(0, 5) || "--.--";
-            const timeNowStr = now.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }).replace(":", ".");
+            const timeNowStr = currentTime.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }).replace(":", ".");
 
             // LOGIKA ALFA REAL-TIME
             // Jika sudah lewat jam pulang dan user BELUM absen masuk sama sekali
@@ -532,7 +564,7 @@ const UserDashboard = () => {
             if (hP !== '--') {
               pulangTime.setHours(parseInt(hP), parseInt(mP), 0, 0);
             }
-            const isPastShift = hP !== '--' && now > pulangTime && !session.isCheckedIn;
+            const isPastShift = hP !== '--' && currentTime > pulangTime && !session.isCheckedIn;
 
             return (
               <div className="space-y-4">
@@ -546,7 +578,7 @@ const UserDashboard = () => {
                     </h4>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold text-[10px] text-slate-500 dark:text-slate-400 mb-0.5">Hari ini</p>
+                    <p className="font-bold text-[10px] text-slate-500 dark:text-slate-400 mb-0.5">Jam Sekarang</p>
                     <p className={`font-bold text-xs ${isPastShift ? 'text-rose-600' : 'text-slate-800 dark:text-white'}`}>{timeNowStr}</p>
                   </div>
                 </div>
