@@ -399,118 +399,116 @@ const PointRules = () => {
         {isQuestModalOpen && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-y-auto bg-black/80 backdrop-blur-md">
             <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-[#1e293b] w-full max-w-2xl rounded-[40px] border border-white/10 shadow-2xl overflow-hidden p-8"
+              className="bg-[#0f172a] w-full max-w-xl rounded-[40px] border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden"
             >
-              <div className="flex justify-between items-center mb-8">
-                <h2 className="text-2xl font-black text-white flex items-center gap-3">
-                  <Sparkles className="text-indigo-400" /> Rule Statement Builder
+              {/* HEADER: Clean & Minimal */}
+              <div className="px-8 py-6 border-b border-white/5 flex justify-between items-center bg-white/[0.02]">
+                <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                  <div className="p-2 bg-indigo-500/20 rounded-xl text-indigo-400">
+                    <Zap size={18} />
+                  </div>
+                  Quest Configuration
                 </h2>
-                <button onClick={() => setIsQuestModalOpen(false)} className="p-2 bg-white/5 rounded-full hover:bg-white/10 text-slate-400"><X /></button>
+                <button onClick={() => setIsQuestModalOpen(false)} className="p-2 hover:bg-white/5 rounded-full text-slate-500 transition-colors"><X size={20} /></button>
               </div>
 
-              <form onSubmit={handleQuestSubmit} className="space-y-8">
-                {/* Rule Name */}
-                <div className="bg-black/20 p-6 rounded-3xl border border-white/5">
-                   <label className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 block">JUDUL QUEST</label>
-                   <input 
-                      type="text" required value={questForm.rule_name} onChange={(e) => setQuestForm({...questForm, rule_name: e.target.value})}
-                      placeholder="Contoh: Sang Juara Disiplin"
-                      className="w-full bg-transparent text-2xl font-bold text-white focus:outline-none border-b-2 border-white/10 focus:border-indigo-500 pb-2"
-                   />
+              <form onSubmit={handleQuestSubmit} className="p-8 space-y-6">
+                {/* 1. BASIC INFORMATION */}
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.2em] mb-2 block">Judul Quest</label>
+                    <input 
+                       type="text" required value={questForm.rule_name} onChange={(e) => setQuestForm({...questForm, rule_name: e.target.value})}
+                       placeholder="Contoh: Disiplin Pagi"
+                       className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3.5 text-white focus:ring-2 focus:ring-indigo-500 transition-all outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.2em] mb-2 block">Target Role</label>
+                    <select 
+                       value={questForm.target_role} onChange={(e) => setQuestForm({...questForm, target_role: e.target.value})}
+                       className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3.5 text-white focus:ring-2 focus:ring-indigo-500 outline-none"
+                    >
+                      <option value="Semua">Semua Karyawan</option>
+                      <option value="karyawan">Hanya Karyawan</option>
+                      <option value="admin">Hanya Admin</option>
+                    </select>
+                  </div>
                 </div>
 
-                {/* STATEMENT BUILDER */}
-                <div className="bg-indigo-600/5 p-8 rounded-[32px] border border-indigo-500/20 text-lg sm:text-xl font-bold text-slate-200 leading-relaxed">
-                   JIKA User dengan Role 
-                   <div className="inline-block mx-2">
-                     <select 
-                       value={questForm.target_role} onChange={(e) => setQuestForm({...questForm, target_role: e.target.value})}
-                       className="bg-indigo-500/20 border border-indigo-500/30 rounded-xl px-3 py-1.5 focus:outline-none text-indigo-300"
-                     >
-                        <option value="Semua">Semua</option>
-                        <option value="karyawan">Karyawan</option>
-                        <option value="admin">Admin</option>
-                     </select>
-                   </div>
-                   melakukan 
-                   <div className="inline-block mx-2">
-                     <select 
-                       value={questForm.tipe_trigger} 
-                       onChange={(e) => {
-                         const val = e.target.value;
-                         let newForm = { ...questForm, tipe_trigger: val };
-                         
-                         // PRESET LOGIC
-                         if (val === "alfa") {
-                           newForm.condition_operator = "=";
-                           newForm.condition_value = "ALFA";
-                         } else if (val === "hadir") {
-                           newForm.condition_operator = "=";
-                           newForm.condition_value = "HADIR";
-                         } else if (val === "tepat_waktu") {
-                           newForm.condition_operator = "<=";
-                           newForm.condition_value = "0";
-                         } else if (val === "telat") {
-                           newForm.condition_operator = ">";
-                           newForm.condition_value = "15";
-                         } else if (val === "sangat_awal") {
-                           newForm.condition_operator = "<=";
-                           newForm.condition_value = "-15";
-                         }
-                         
-                         setQuestForm(newForm);
-                       }}
-                       className="bg-indigo-500/20 border border-indigo-500/30 rounded-xl px-3 py-1.5 focus:outline-none text-indigo-300"
-                     >
-                        <option value="hadir">Absen Masuk (Umum)</option>
-                        <option value="tepat_waktu">Absen Tepat Waktu</option>
-                        <option value="telat">Keterlambatan (Telat)</option>
-                        <option value="sangat_awal">Datang Sangat Awal</option>
-                        <option value="alfa">Status Alfa (Mangkir)</option>
-                        <option value="custom">Kondisi Kustom (Waktu)</option>
-                     </select>
-                   </div>
+                {/* 2. LOGIC & TRIGGER */}
+                <div className="pt-6 border-t border-white/5 space-y-4">
+                  <div className="grid grid-cols-1 gap-4">
+                    <div>
+                      <label className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.2em] mb-2 block">Trigger Kondisi</label>
+                      <select 
+                        value={questForm.tipe_trigger} 
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          let newForm = { ...questForm, tipe_trigger: val };
+                          if (val === "alfa") { newForm.condition_operator = "="; newForm.condition_value = "ALFA"; }
+                          else if (val === "hadir") { newForm.condition_operator = "="; newForm.condition_value = "HADIR"; }
+                          else if (val === "tepat_waktu") { newForm.condition_operator = "<="; newForm.condition_value = "0"; }
+                          else if (val === "telat") { newForm.condition_operator = ">"; newForm.condition_value = "15"; }
+                          else if (val === "sangat_awal") { newForm.condition_operator = "<="; newForm.condition_value = "-15"; }
+                          setQuestForm(newForm);
+                        }}
+                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3.5 text-white outline-none focus:ring-2 focus:ring-indigo-500"
+                      >
+                         <option value="hadir">Status: Absen Masuk</option>
+                         <option value="alfa">Status: Tidak Masuk (Alfa)</option>
+                         <option value="tepat_waktu">Waktu: Tepat Waktu</option>
+                         <option value="telat">Waktu: Keterlambatan</option>
+                         <option value="sangat_awal">Waktu: Datang Sangat Awal</option>
+                         <option value="custom">Waktu: Kustom (Manual)</option>
+                      </select>
+                    </div>
 
-                   {["tepat_waktu", "telat", "sangat_awal", "custom"].includes(questForm.tipe_trigger) && (
-                     <>
-                        dengan selisih 
-                        <div className="inline-block mx-2">
+                    {["tepat_waktu", "telat", "sangat_awal", "custom"].includes(questForm.tipe_trigger) && (
+                      <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                        <div>
+                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 block">Operator</label>
                           <select 
                              value={questForm.condition_operator} onChange={(e) => setQuestForm({...questForm, condition_operator: e.target.value})}
-                             className="bg-indigo-500/20 border border-indigo-500/30 rounded-xl px-3 py-1.5 focus:outline-none text-indigo-300"
+                             className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3.5 text-white outline-none"
                           >
-                             <option value="<">{"<"}</option>
-                             <option value="<=">{"<="}</option>
-                             <option value=">">{">"}</option>
-                             <option value=">=">{">="}</option>
-                             <option value="=">{"="}</option>
-                             <option value="BETWEEN">Antara</option>
+                             <option value="<">{"Kurang Dari (<)"}</option>
+                             <option value="<=">{"Maksimal (<=)"}</option>
+                             <option value=">">{"Lebih Dari (>)"}</option>
+                             <option value=">=">{"Minimal (>=)"}</option>
+                             <option value="=">{"Sama Dengan (=)"}</option>
+                             <option value="BETWEEN">{"Antara (Range)"}</option>
                           </select>
                         </div>
-                        <div className="inline-block mx-2">
-                           <input 
-                              type="text" required value={questForm.condition_value} onChange={(e) => setQuestForm({...questForm, condition_value: e.target.value})}
-                              className="w-24 bg-white/5 border border-white/10 rounded-xl px-2 py-1.5 text-center focus:outline-none text-white font-mono"
-                              placeholder={questForm.condition_operator === "BETWEEN" ? "1,15" : "0"}
-                           />
+                        <div>
+                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 block">Menit</label>
+                          <input 
+                             type="text" required value={questForm.condition_value} onChange={(e) => setQuestForm({...questForm, condition_value: e.target.value})}
+                             className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3.5 text-white outline-none font-mono text-center"
+                             placeholder={questForm.condition_operator === "BETWEEN" ? "0,15" : "0"}
+                          />
                         </div>
-                        menit
-                     </>
-                   )}
+                      </div>
+                    )}
+                  </div>
+                </div>
 
-                   MAKA berikan 
-                   <div className="inline-block mx-2">
-                      <input 
-                        type="number" required value={questForm.point_modifier} onChange={(e) => setQuestForm({...questForm, point_modifier: e.target.value})}
-                        className="w-20 bg-emerald-500/20 border border-emerald-500/30 rounded-xl px-2 py-1.5 text-center focus:outline-none text-emerald-400 font-black"
-                      />
-                   </div>
-                   Poin.
+                {/* 3. REWARD */}
+                <div className="pt-6 border-t border-white/5">
+                  <label className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.2em] mb-2 block">Hadiah / Denda Poin</label>
+                  <div className="relative">
+                    <input 
+                      type="number" required value={questForm.point_modifier} onChange={(e) => setQuestForm({...questForm, point_modifier: e.target.value})}
+                      className="w-full bg-emerald-500/10 border border-emerald-500/20 rounded-2xl px-5 py-4 text-emerald-400 font-black text-2xl outline-none text-center"
+                      placeholder="Contoh: 15"
+                    />
+                    <div className="absolute right-6 top-1/2 -translate-y-1/2 text-[10px] font-black text-emerald-600 uppercase">Points</div>
+                  </div>
                 </div>
 
                 <div className="pt-4">
-                   <button type="submit" className="w-full py-5 bg-indigo-600 hover:bg-indigo-500 text-white font-black rounded-3xl text-xl shadow-2xl shadow-indigo-600/40 transition-all flex items-center justify-center gap-3">
-                      <Save /> Simpan Aturan Quest
+                   <button type="submit" className="w-full py-4.5 bg-indigo-600 hover:bg-indigo-500 text-white font-black rounded-2xl text-lg shadow-xl shadow-indigo-600/20 transition-all flex items-center justify-center gap-2">
+                      <Save size={20} /> Simpan Pengaturan Quest
                    </button>
                 </div>
               </form>
