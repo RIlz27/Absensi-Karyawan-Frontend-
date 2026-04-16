@@ -530,6 +530,8 @@ const PointRules = () => {
             </motion.div>
           </div>
         )}
+      </AnimatePresence>
+
       {/* --- MODAL: KASIR POIN (MANUAL) --- */}
       <AnimatePresence>
         {isCashierModalOpen && (
