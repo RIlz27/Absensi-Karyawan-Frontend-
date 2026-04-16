@@ -5,7 +5,7 @@ import {
   getSubordinates,
   getAssessmentCategories,
   submitAssessment,
-} from "@/store/api/absensiService";
+} from "@/store/api/absensi-service";
 
 // Helper Avatar
 const getAvatarUrl = (path) => {
@@ -14,7 +14,7 @@ const getAvatarUrl = (path) => {
   if (path.startsWith("http")) return path;
   const baseUrl =
     import.meta.env.VITE_API_URL?.replace("/api", "") ||
-    "http://127.0.0.1:8000";
+    "http://localhost:8000";
   return `${baseUrl}/storage/${path}`;
 };
 

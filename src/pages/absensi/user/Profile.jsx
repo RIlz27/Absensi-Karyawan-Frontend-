@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Icon } from "@iconify/react";
-import API from "@/store/api/absensiService.js";
+import API from "@/store/api/absensi-service.js";
 import { toast } from "react-toastify";
 import { useDispatch } from "react-redux";
 import { setUser as setReduxUser } from "@/store/api/auth/authSlice";

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Icon } from "@iconify/react";
 import { Link, useNavigate } from "react-router-dom";
-import API from "@/store/api/absensiService.js";
+import API from "@/store/api/absensi-service.js";
 import { useGetPengumumanUserQuery } from "@/store/api/pengumuman/pengumumanApiSlice";
 import PointBadge from "@/components/pointbadge";
 

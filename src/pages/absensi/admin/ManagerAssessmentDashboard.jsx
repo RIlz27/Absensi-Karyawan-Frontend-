@@ -3,14 +3,14 @@ import { useQuery } from "@tanstack/react-query";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { Icon } from "@iconify/react";
-import { getSubordinates, getAssessments } from "@/store/api/absensiService";
+import { getSubordinates, getAssessments } from "@/store/api/absensi-service";
 import UserAvatar from "@/assets/images/avatar/avatar.jpg";
 
 // Helper Avatar (Sama kayak di profile lu)
 const getAvatarUrl = (path) => {
   if (!path) return UserAvatar;
   if (path.startsWith("http")) return path;
-  const baseUrl = import.meta.env.VITE_API_URL?.replace("/api", "") || "http://127.0.0.1:8000";
+  const baseUrl = import.meta.env.VITE_API_URL?.replace("/api", "") || "http://localhost:8000";
   return `${baseUrl}/storage/${path}`;
 };
 

@@ -8,7 +8,7 @@ const AuthLayout = () => {
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    const API_BASE = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api";
+    const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000/api";
     fetch(`${API_BASE}/initial-setup/check`)
       .then((res) => res.json())
       .then((data) => {

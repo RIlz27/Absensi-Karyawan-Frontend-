@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getUsers, createUser, deleteUser, updateUserRole, getKantors, updateUser } from "@/store/api/absensiService.js";
+import { getUsers, createUser, deleteUser, updateUserRole, getKantors, updateUser } from "@/store/api/absensi-service.js";
 import { toast } from "react-toastify";
 import { Icon } from "@iconify/react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -123,7 +123,7 @@ export default function AddUser() {
   const getAvatarUrl = (path) => {
     if (!path) return null;
     if (path.startsWith("http")) return path;
-    const API_BASE = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+    const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
     const baseUrl = API_BASE.replace("/api", "");
     return `${baseUrl}/storage/${path}`;
   };

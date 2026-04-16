@@ -4,7 +4,7 @@ import {
   deleteAdminRule, 
   createAdminRule, 
   updateAdminRule 
-} from "@/store/api/absensiService.js";
+} from "@/store/api/absensi-service.js";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, Shield, Clock, Plus, Trash2, Edit3, Target, Zap, X, Save, Calculator, Users } from "lucide-react";
 import Swal from "sweetalert2";
@@ -40,7 +40,7 @@ const PointRules = () => {
   const fetchUsersList = async () => {
     try {
       const token = localStorage.getItem("token") || sessionStorage.getItem("token");
-      const url = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000/api";
+      const url = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api";
       const response = await axios.get(`${url}/users`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -60,7 +60,7 @@ const PointRules = () => {
     e.preventDefault();
     try {
       const token = localStorage.getItem("token") || sessionStorage.getItem("token");
-      const url = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000/api";
+      const url = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api";
       await axios.post(`${url}/admin/gamification/manual-points`, cashierForm, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -446,8 +446,8 @@ const PointRules = () => {
                       className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
                     >
                       <option value="Semua">Semua Role</option>
-                      <option value="Pegawai">Pegawai</option>
-                      <option value="Admin">Admin</option>
+                      <option value="karyawan">Karyawan</option>
+                      <option value="admin">Admin</option>
                     </select>
                   </div>
                   <div>

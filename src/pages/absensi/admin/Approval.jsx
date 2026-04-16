@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Icon } from "@iconify/react";
-import API from "@/store/api/absensiService.js";
+import API from "@/store/api/absensi-service.js";
 
 const AdminApprovalPage = () => {
   const [activeTab, setActiveTab] = useState("cuti"); // 'cuti' or 'izin'

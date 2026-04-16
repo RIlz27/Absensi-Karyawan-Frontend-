@@ -1,5 +1,5 @@
 import axios from 'axios'; 
-const API_URL = 'http://127.0.0.1:8000/api/gamification'; // Sesuaiin kalau base URL lu beda
+const API_URL = 'http://localhost:8000/api/gamification'; // Sesuaiin kalau base URL lu beda
 
 // 1. Ambil Saldo & History
 const getPointStatus = async () => {

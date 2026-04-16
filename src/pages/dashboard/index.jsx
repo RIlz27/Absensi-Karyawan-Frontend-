@@ -3,12 +3,12 @@ import { Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 
-// IMPORT FUNGSI API (Pastikan semua ada di absensiService)
+// IMPORT FUNGSI API (Pastikan semua ada di absensi-service)
 import {
   getKantors,
   getUsers,
   getAssessments
-} from "@/store/api/absensiService.js";
+} from "@/store/api/absensi-service.js";
 
 import Card from "@/components/ui/Card";
 import Icon from "@/components/ui/Icon";

@@ -9,7 +9,7 @@ import API, {
   postShiftTambahan,
   postShiftBiasa,
   getUsers,
-} from "@/store/api/absensiService.js";
+} from "@/store/api/absensi-service.js";
 
 const ManageShift = () => {
   const queryClient = useQueryClient();

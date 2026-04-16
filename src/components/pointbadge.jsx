@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Icon from "@/components/ui/Icon";
-import { getPointStatus } from "@/store/api/absensiService.js";
+import { getPointStatus } from "@/store/api/absensi-service.js";
 
 const PointBadge = () => {
   const [balance, setBalance] = useState(0);

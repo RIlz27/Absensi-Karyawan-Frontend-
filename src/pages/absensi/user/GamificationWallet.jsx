@@ -6,7 +6,7 @@ import {
   getStoreItems, 
   buyItem, 
   getMyTokens 
-} from "@/store/api/absensiService.js";
+} from "@/store/api/absensi-service.js";
 
 const GamificationWallet = () => {
   const [activeTab, setActiveTab] = useState("riwayat");

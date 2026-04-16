@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useSelector } from "react-redux";
 import { Icon } from "@iconify/react";
-import { getAssessments } from "@/store/api/absensiService";
+import { getAssessments } from "@/store/api/absensi-service";
 
 // Helper Avatar
 const getAvatarUrl = (path) => {
@@ -10,7 +10,7 @@ const getAvatarUrl = (path) => {
   if (path.startsWith("http")) return path;
   const baseUrl =
     import.meta.env.VITE_API_URL?.replace("/api", "") ||
-    "http://127.0.0.1:8000";
+    "http://localhost:8000";
   return `${baseUrl}/storage/${path}`;
 };
 

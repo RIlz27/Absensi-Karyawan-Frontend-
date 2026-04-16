@@ -1,8 +1,8 @@
 import React, { lazy, Suspense, useState, useEffect } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import axios from "axios";
-// Sesuaikan path-nya ke lokasi absensiService.js
-import API from "./store/api/AbsensiService";
+// Sesuaikan path-nya ke lokasi absensi-service.js
+import API from "./store/api/absensi-service";
 
 // home pages  & dashboard
 const Dashboard = lazy(() => import("./pages/dashboard"));

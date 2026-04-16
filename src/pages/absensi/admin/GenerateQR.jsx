@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import API, { getKantors } from "@/store/api/absensiService.js";
+import API, { getKantors } from "@/store/api/absensi-service.js";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Icon from "@/components/ui/Icon";

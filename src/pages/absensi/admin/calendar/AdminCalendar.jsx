@@ -5,7 +5,7 @@ import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import { useGetAdminCalendarDataQuery, useAddBypassMutation } from "@/store/api/calendar/calendarApiSlice";
 import { useQuery } from "@tanstack/react-query";
-import API from "@/store/api/absensiService.js";
+import API from "@/store/api/absensi-service.js";
 import Card from "@/components/ui/Card";
 import Icon from "@/components/ui/Icon";
 import { toast } from "react-toastify";

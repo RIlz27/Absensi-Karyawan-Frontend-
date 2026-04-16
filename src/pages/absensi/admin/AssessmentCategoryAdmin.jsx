@@ -8,7 +8,7 @@ import {
   getQuestionsByCategory,
   createQuestion,
   deleteQuestion,
-} from "@/store/api/absensiService";
+} from "@/store/api/absensi-service";
 
 export default function AssessmentCategoryAdmin() {
   const [categories, setCategories] = useState([]);

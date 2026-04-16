@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Html5QrcodeScanner } from "html5-qrcode";
 import { useMutation } from "@tanstack/react-query";
-import { scanQr, scanSelfie } from "@/store/api/absensiService.js";
+import { scanQr, scanSelfie } from "@/store/api/absensi-service.js";
 import Card from "@/components/ui/Card";
 import { useNavigate } from "react-router-dom"; // Asumsi pake react-router
 import { Icon } from "@iconify/react";

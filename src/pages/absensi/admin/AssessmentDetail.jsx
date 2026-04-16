@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Icon } from "@iconify/react";
-import { getAssessmentById, getAssessments } from "@/store/api/absensiService";
+import { getAssessmentById, getAssessments } from "@/store/api/absensi-service";
 
 // Helper Avatar
 const getAvatarUrl = (path) => {
   if (!path) return "https://ui-avatars.com/api/?name=User&background=7f13ec&color=fff";
   if (path.startsWith("http")) return path;
-  const baseUrl = import.meta.env.VITE_API_URL?.replace("/api", "") || "http://127.0.0.1:8000";
+  const baseUrl = import.meta.env.VITE_API_URL?.replace("/api", "") || "http://localhost:8000";
   return `${baseUrl}/storage/${path}`;
 };
 
