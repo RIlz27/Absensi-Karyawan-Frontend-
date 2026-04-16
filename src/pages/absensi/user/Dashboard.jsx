@@ -525,20 +525,29 @@ const UserDashboard = () => {
             const jamPulang = activeShift?.jam_pulang?.substring(0, 5) || "--.--";
             const timeNowStr = now.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }).replace(":", ".");
 
+            // LOGIKA ALFA REAL-TIME
+            // Jika sudah lewat jam pulang dan user BELUM absen masuk sama sekali
+            const [hP, mP] = jamPulang.split(jamPulang.includes(':') ? ':' : '.');
+            const pulangTime = new Date();
+            if (hP !== '--') {
+              pulangTime.setHours(parseInt(hP), parseInt(mP), 0, 0);
+            }
+            const isPastShift = hP !== '--' && now > pulangTime && !session.isCheckedIn;
+
             return (
               <div className="space-y-4">
-                <div className="bg-[#1e293b]/5 dark:bg-[#0f1523] p-5 rounded-[24px] flex items-center justify-between border border-slate-200 dark:border-white/5">
+                <div className={`p-5 rounded-[24px] flex items-center justify-between border transition-colors ${isPastShift ? 'bg-rose-500/10 border-rose-500/20' : 'bg-[#1e293b]/5 dark:bg-[#0f1523] border-slate-200 dark:border-white/5'}`}>
                   <div className="flex items-center gap-4">
-                    <div className="h-6 w-6 rounded-full flex items-center justify-center bg-white/5" style={{ backgroundColor: `${shiftColor}20` }}>
-                      <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: shiftColor, boxShadow: `0 0 8px ${shiftColor}` }}></div>
+                    <div className="h-6 w-6 rounded-full flex items-center justify-center bg-white/5" style={{ backgroundColor: isPastShift ? '#ef4444' : `${shiftColor}20` }}>
+                      <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: isPastShift ? '#fff' : shiftColor, boxShadow: isPastShift ? 'none' : `0 0 8px ${shiftColor}` }}></div>
                     </div>
-                    <h4 className="font-bold text-[15px] text-slate-800 dark:text-white">
-                      {shiftName}
+                    <h4 className={`font-bold text-[15px] ${isPastShift ? 'text-rose-600 dark:text-rose-400' : 'text-slate-800 dark:text-white'}`}>
+                      {shiftName} {isPastShift && "(ALFA)"}
                     </h4>
                   </div>
                   <div className="text-right">
                     <p className="font-bold text-[10px] text-slate-500 dark:text-slate-400 mb-0.5">Hari ini</p>
-                    <p className="font-bold text-xs text-slate-800 dark:text-white">{timeNowStr}</p>
+                    <p className={`font-bold text-xs ${isPastShift ? 'text-rose-600' : 'text-slate-800 dark:text-white'}`}>{timeNowStr}</p>
                   </div>
                 </div>
 
@@ -552,40 +561,49 @@ const UserDashboard = () => {
                       <p className="text-sm font-bold text-slate-800 dark:text-white">{jamMasuk.replace(':', '.')}</p>
                     </div>
                   </div>
-                  <div className="flex-1 bg-[#1e293b]/5 dark:bg-[#0f1523] p-4 rounded-[20px] flex items-center gap-3 border border-slate-200 dark:border-white/5">
-                    <div className="h-5 w-5 rounded-full flex items-center justify-center bg-red-500/20">
-                      <div className="h-2 w-2 rounded-full shadow-[0_0_6px_rgba(220,38,38,0.8)] bg-red-600"></div>
+                  <div className={`flex-1 p-4 rounded-[20px] flex items-center gap-3 border transition-colors ${isPastShift ? 'bg-rose-600 text-white border-rose-600' : 'bg-[#1e293b]/5 dark:bg-[#0f1523] border-slate-200 dark:border-white/5'}`}>
+                    <div className={`h-5 w-5 rounded-full flex items-center justify-center ${isPastShift ? 'bg-white/20' : 'bg-red-500/20'}`}>
+                      <div className={`h-2 w-2 rounded-full ${isPastShift ? 'bg-white shadow-[0_0_6px_rgba(255,255,255,0.8)]' : 'bg-red-600 shadow-[0_0_6px_rgba(220,38,38,0.8)]'}`}></div>
                     </div>
                     <div>
-                      <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-0.5">Jam Pulang</p>
-                      <p className="text-sm font-bold text-slate-800 dark:text-white">{jamPulang.replace(':', '.')}</p>
+                      <p className={`text-[11px] font-bold mb-0.5 ${isPastShift ? 'text-white/80' : 'text-slate-500 dark:text-slate-400'}`}>Jam Pulang</p>
+                      <p className={`text-sm font-bold ${isPastShift ? 'text-white' : 'text-slate-800 dark:text-white'}`}>{jamPulang.replace(':', '.')}</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Action Banner */}
-                {!session.isCheckedIn && (
-                  <button onClick={() => navigate('/user/scanner')} className="w-full bg-indigo-600 hover:bg-indigo-500 active:scale-95 transition-all py-4 rounded-[16px] flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/30">
-                    <Icon icon="ph:qr-code-bold" className="text-xl text-white" />
-                    <span className="font-bold text-white text-[15px]">Scan</span>
-                  </button>
-                )}
-                {session.isCheckedIn && !session.isCompleted && (
-                  canCheckout ? (
-                    <button onClick={() => navigate('/user/scanner')} className="w-full bg-indigo-600 hover:bg-indigo-500 active:scale-95 transition-all py-4 rounded-[16px] flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/30">
-                      <Icon icon="ph:qr-code-bold" className="text-xl text-white" />
-                      <span className="font-bold text-white text-[15px]">Scan</span>
-                    </button>
-                  ) : (
-                    <div className="w-full bg-indigo-600 py-4 rounded-[16px] text-center shadow-lg shadow-indigo-600/30 border border-indigo-500">
-                      <span className="font-bold text-white text-[15px]">Sisa {timeLeft || "--.--.--"}</span>
-                    </div>
-                  )
-                )}
-                {session.isCompleted && (
-                  <div className="w-full bg-indigo-600 py-4 rounded-[16px] text-center shadow-lg shadow-indigo-600/30 border border-indigo-500">
-                    <span className="font-bold text-white text-[15px]">Hari ini sudah selesai</span>
+                {isPastShift ? (
+                  <div className="w-full bg-rose-600 py-4 rounded-[16px] flex items-center justify-center gap-2 shadow-lg shadow-rose-600/30 border border-rose-500 animate-pulse">
+                     <Icon icon="ph:warning-fill" className="text-xl text-white" />
+                     <span className="font-bold text-white text-[15px]">STATUS: ALFA (Gagal Absen)</span>
                   </div>
+                ) : (
+                  <>
+                    {!session.isCheckedIn && (
+                      <button onClick={() => navigate('/user/scanner')} className="w-full bg-indigo-600 hover:bg-indigo-500 active:scale-95 transition-all py-4 rounded-[16px] flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/30">
+                        <Icon icon="ph:qr-code-bold" className="text-xl text-white" />
+                        <span className="font-bold text-white text-[15px]">Scan</span>
+                      </button>
+                    )}
+                    {session.isCheckedIn && !session.isCompleted && (
+                      canCheckout ? (
+                        <button onClick={() => navigate('/user/scanner')} className="w-full bg-indigo-600 hover:bg-indigo-500 active:scale-95 transition-all py-4 rounded-[16px] flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/30">
+                          <Icon icon="ph:qr-code-bold" className="text-xl text-white" />
+                          <span className="font-bold text-white text-[15px]">Scan</span>
+                        </button>
+                      ) : (
+                        <div className="w-full bg-indigo-600 py-4 rounded-[16px] text-center shadow-lg shadow-indigo-600/30 border border-indigo-500">
+                          <span className="font-bold text-white text-[15px]">Sisa {timeLeft || "--.--.--"}</span>
+                        </div>
+                      )
+                    )}
+                    {session.isCompleted && (
+                      <div className="w-full bg-indigo-600 py-4 rounded-[16px] text-center shadow-lg shadow-indigo-600/30 border border-indigo-500">
+                        <span className="font-bold text-white text-[15px]">Hari ini sudah selesai</span>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             );
