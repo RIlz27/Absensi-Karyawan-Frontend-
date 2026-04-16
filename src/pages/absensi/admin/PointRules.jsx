@@ -139,6 +139,38 @@ const PointRules = () => {
     }
   };
 
+  const fetchUsersList = async () => {
+    try {
+      const response = await getUsers();
+      setUsersList(response.data || response);
+    } catch (error) {
+      console.error("Gagal menarik data user:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (isCashierModalOpen && usersList.length === 0) {
+      fetchUsersList();
+    }
+  }, [isCashierModalOpen]);
+
+  const handleCashierSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem("token");
+      const url = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api";
+      await axios.post(`${url}/admin/gamification/manual-points`, cashierForm, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toastSuccess("Poin Berhasil Disesuaikan!");
+      setIsCashierModalOpen(false);
+      setCashierForm({ user_id: "", amount: "", reason: "" });
+      fetchData();
+    } catch (error) {
+      toastError(error?.response?.data?.message || "Gagal menyesuaikan poin.");
+    }
+  };
+
   // --- HELPERS ---
   const toastSuccess = (msg) => Swal.fire({ title: msg, icon: "success", background: "#1e293b", color: "#fff", timer: 1500, showConfirmButton: false });
   const toastError = (msg) => Swal.fire({ title: "Gagal", text: msg, icon: "error", background: "#1e293b", color: "#fff" });
@@ -171,9 +203,17 @@ const PointRules = () => {
             </button>
             <button 
               onClick={() => { setItemModalMode("create"); setIsItemModalOpen(true); }}
-              className="px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-2xl font-bold border border-white/10 flex items-center gap-2 transition-all"
+              className="p-3 bg-white/10 hover:bg-white/20 text-white rounded-2xl font-bold border border-white/10 flex items-center justify-center transition-all"
+              title="Tambah Voucher"
             >
-              <ShoppingBag size={20} /> Tambah Voucher
+              <ShoppingBag size={20} />
+            </button>
+            <button 
+              onClick={() => setIsCashierModalOpen(true)}
+              className="p-3 bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-400 rounded-2xl font-bold border border-emerald-500/20 flex items-center justify-center transition-all"
+              title="Kasir Poin (Manual)"
+            >
+              <Calculator size={20} />
             </button>
           </div>
         </div>
@@ -486,6 +526,51 @@ const PointRules = () => {
                   Publish Voucher
                 </button>
                 <button type="button" onClick={() => setIsItemModalOpen(false)} className="w-full text-slate-500 font-bold py-2 hover:text-white transition-colors">Batal</button>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      {/* --- MODAL: KASIR POIN (MANUAL) --- */}
+      <AnimatePresence>
+        {isCashierModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-[#1e293b] w-full max-w-md rounded-[40px] border border-white/10 shadow-2xl p-8"
+            >
+              <h2 className="text-2xl font-black text-emerald-400 mb-8 flex items-center gap-3">
+                 <Calculator /> Kasir Poin (Manual)
+              </h2>
+              <form onSubmit={handleCashierSubmit} className="space-y-6">
+                <div>
+                   <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">PILIH KARYAWAN</label>
+                   <select 
+                     required value={cashierForm.user_id} onChange={(e) => setCashierForm({...cashierForm, user_id: e.target.value})}
+                     className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white outline-none"
+                   >
+                      <option value="">-- Pilih User --</option>
+                      {usersList.map(u => <option key={u.id} value={u.id}>{u.name} ({u.role})</option>)}
+                   </select>
+                </div>
+                <div>
+                   <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">JUMLAH POIN (+ / -)</label>
+                   <input 
+                     type="number" required value={cashierForm.amount} onChange={(e) => setCashierForm({...cashierForm, amount: e.target.value})}
+                     className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white outline-none font-black text-xl"
+                     placeholder="Contoh: 500 atau -100"
+                   />
+                </div>
+                <div>
+                   <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">ALASAN PENYESUAIAN</label>
+                   <textarea 
+                     required value={cashierForm.reason} onChange={(e) => setCashierForm({...cashierForm, reason: e.target.value})}
+                     className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white outline-none h-24 resize-none"
+                     placeholder="Contoh: Rewarding for excellence"
+                   />
+                </div>
+                <button type="submit" className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-3xl shadow-xl transition-all">
+                  Eksekusi Mutasi Poin
+                </button>
+                <button type="button" onClick={() => setIsCashierModalOpen(false)} className="w-full text-slate-500 font-bold py-2 hover:text-white transition-colors">Batal</button>
               </form>
             </motion.div>
           </div>
