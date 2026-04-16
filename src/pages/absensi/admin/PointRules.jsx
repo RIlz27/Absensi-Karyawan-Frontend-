@@ -9,6 +9,7 @@ import {
   updateAdminItem,
   deleteAdminItem,
   getAdminLeaderboard,
+  getAdminTokens,
   getUsers
 } from "@/store/api/absensi-service.js";
 import { motion, AnimatePresence } from "framer-motion";
@@ -26,6 +27,7 @@ const PointRules = () => {
   const [rules, setRules] = useState([]);
   const [items, setItems] = useState([]);
   const [leaderboard, setLeaderboard] = useState({ top: [], bottom: [] });
+  const [adminTokens, setAdminTokens] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // Modal Quest State
@@ -61,14 +63,16 @@ const PointRules = () => {
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      const [rulesData, itemsData, leaderboardData] = await Promise.all([
+      const [rulesData, itemsData, leaderboardData, tokensData] = await Promise.all([
         getAdminRules(),
         getAdminItems(),
-        getAdminLeaderboard()
+        getAdminLeaderboard(),
+        getAdminTokens()
       ]);
       setRules(rulesData);
       setItems(itemsData);
       setLeaderboard(leaderboardData);
+      setAdminTokens(tokensData);
     } catch (error) {
       console.error("Gagal menarik data:", error);
     } finally {
@@ -173,6 +177,20 @@ const PointRules = () => {
       toastError(error?.response?.data?.message || "Gagal menyesuaikan poin.");
     }
   };
+
+  const inventoryByUser = adminTokens.reduce((acc, token) => {
+    const user = token.user || {
+      id: token.user_id || token.user?.id,
+      name: token.user?.name || token.user_name || `User ${token.user_id || token.user?.id || "?"}`,
+      role: token.user?.role || token.user_role || ""
+    };
+    const userId = user.id ?? token.user_id ?? token.user_name ?? `user-${token.id}`;
+    if (!acc[userId]) acc[userId] = { user, tokens: [] };
+    acc[userId].tokens.push(token);
+    return acc;
+  }, {});
+
+  const inventoryUsers = Object.values(inventoryByUser);
 
   // --- HELPERS ---
   const toastSuccess = (msg) => Swal.fire({ title: msg, icon: "success", background: "#1e293b", color: "#fff", timer: 1500, showConfirmButton: false });
@@ -350,8 +368,8 @@ const PointRules = () => {
               className="grid grid-cols-1 lg:grid-cols-2 gap-8"
             >
               {[
-                { data: leaderboard.top, title: "Elite Performers", color: "emerald", icon: TrendingUp },
-                { data: leaderboard.bottom, title: "Needs Coaching", color: "rose", icon: TrendingDown }
+                { data: leaderboard.top, title: "Elite Performers", color: "emerald", icon: TrendingUp, type: "leaderboard" },
+                { data: inventoryUsers, title: "Inventori Karyawan", color: "rose", icon: TrendingDown, type: "inventory" }
               ].map((section, sIdx) => (
                 <div key={sIdx} className="bg-white dark:bg-slate-900 p-8 rounded-[40px] border border-slate-200 dark:border-white/5 shadow-sm relative overflow-hidden">
                   <div className={`absolute top-0 right-0 w-32 h-32 bg-${section.color}-500/5 blur-3xl rounded-full`}></div>
@@ -360,23 +378,56 @@ const PointRules = () => {
                     {section.title}
                   </h2>
                   <div className="space-y-4 relative z-10">
-                    {section.data.map((user, idx) => (
-                      <div key={user.id} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-black/20 rounded-2xl border border-slate-100 dark:border-white/5 hover:scale-[1.01] transition-transform">
-                        <div className="flex items-center gap-4">
-                          <div className="text-xl font-black text-slate-300 dark:text-slate-700 min-w-[24px]">#{idx + 1}</div>
-                          <div className="h-12 w-12 rounded-2xl bg-slate-200 dark:bg-slate-800 flex items-center justify-center overflow-hidden border border-slate-200 dark:border-white/10">
-                            {user.avatar ? <img src={user.avatar} className="h-full w-full object-cover" /> : <Users size={24} className="text-slate-400" />}
+                    {section.type === "inventory" ? (
+                      section.data.map((user, idx) => (
+                        <div key={user.user.id ?? idx} className="rounded-3xl border border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-black/20 p-4">
+                          <div className="flex items-center justify-between gap-4">
+                            <div className="flex items-center gap-4">
+                              <div className="text-xl font-black text-slate-300 dark:text-slate-700 min-w-[24px]">#{idx + 1}</div>
+                              <div className="h-12 w-12 rounded-2xl bg-slate-200 dark:bg-slate-800 flex items-center justify-center overflow-hidden border border-slate-200 dark:border-white/10">
+                                <Users size={24} className="text-slate-400" />
+                              </div>
+                              <div>
+                                <p className="font-bold text-slate-900 dark:text-white text-sm">{user.user.name}</p>
+                                <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest">{user.user.role || "Karyawan"}</p>
+                              </div>
+                            </div>
+                            <div className={`px-3 py-2 rounded-xl font-black text-sm bg-${section.color}-500/5 text-${section.color}-600 dark:text-${section.color}-400 border border-${section.color}-500/10`}>
+                              {user.tokens.length} item
+                            </div>
                           </div>
-                          <div>
-                            <p className="font-bold text-slate-900 dark:text-white text-sm">{user.name}</p>
-                            <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest">{user.role}</p>
+                          <div className="mt-3 text-xs text-slate-500 dark:text-slate-400 space-y-1">
+                            {user.tokens.slice(0, 3).map((token, tIdx) => (
+                              <div key={tIdx} className="flex items-center gap-2">
+                                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-slate-200 dark:bg-slate-800 text-slate-500 text-[10px]">{tIdx + 1}</span>
+                                <span className="truncate">{token.item?.item_name || token.name || token.token_name || "Voucher tanpa nama"}</span>
+                              </div>
+                            ))}
+                            {user.tokens.length > 3 && (
+                              <p className="text-[10px] text-slate-400">+{user.tokens.length - 3} voucher lainnya</p>
+                            )}
                           </div>
                         </div>
-                        <div className={`px-4 py-2 bg-${section.color}-500/5 text-${section.color}-600 dark:text-${section.color}-400 rounded-xl font-black text-lg border border-${section.color}-500/10`}>
-                          {user.points} <span className="text-[10px] opacity-50 ml-1">pts</span>
+                      ))
+                    ) : (
+                      section.data.map((user, idx) => (
+                        <div key={user.id} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-black/20 rounded-2xl border border-slate-100 dark:border-white/5 hover:scale-[1.01] transition-transform">
+                          <div className="flex items-center gap-4">
+                            <div className="text-xl font-black text-slate-300 dark:text-slate-700 min-w-[24px]">#{idx + 1}</div>
+                            <div className="h-12 w-12 rounded-2xl bg-slate-200 dark:bg-slate-800 flex items-center justify-center overflow-hidden border border-slate-200 dark:border-white/10">
+                              {user.avatar ? <img src={user.avatar} className="h-full w-full object-cover" /> : <Users size={24} className="text-slate-400" />}
+                            </div>
+                            <div>
+                              <p className="font-bold text-slate-900 dark:text-white text-sm">{user.name}</p>
+                              <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest">{user.role}</p>
+                            </div>
+                          </div>
+                          <div className={`px-4 py-2 bg-${section.color}-500/5 text-${section.color}-600 dark:text-${section.color}-400 rounded-xl font-black text-lg border border-${section.color}-500/10`}>
+                            {user.points} <span className="text-[10px] opacity-50 ml-1">pts</span>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))
+                    )}
                     {section.data.length === 0 && <div className="p-8 text-center text-slate-400 italic">Belum ada data analitik.</div>}
                   </div>
                 </div>
